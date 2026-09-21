@@ -18,6 +18,7 @@ function randomPassword(): string {
 export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
   const router = useRouter();
   const [drafts, setDrafts] = useState<Record<string, { username: string; password: string }>>({});
+  const [resetDrafts, setResetDrafts] = useState<Record<string, string>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -35,8 +36,16 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
     setDrafts((prev) => ({ ...prev, [employeeId]: { ...draftFor(employeeId, ""), ...prev[employeeId], ...patch } }));
   }
 
+  function resetDraftFor(employeeId: string) {
+    return resetDrafts[employeeId] ?? randomPassword();
+  }
+
   async function createLogin(row: Row) {
     const draft = draftFor(row.employeeId, row.employeeName);
+    if (draft.password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
     setBusyId(row.employeeId);
     setError(null);
     setNotice(null);
@@ -51,13 +60,17 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
       setError(data.error ?? "Failed to create login");
       return;
     }
-    setNotice(`Created login "${draft.username}" for ${row.employeeName} — password: ${draft.password}`);
+    setNotice(`Created login "${draft.username}" for ${row.employeeName}.`);
     router.refresh();
   }
 
   async function resetPassword(row: Row) {
     if (!row.userId) return;
-    const newPassword = randomPassword();
+    const newPassword = resetDraftFor(row.employeeId);
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
     setBusyId(row.employeeId);
     setError(null);
     setNotice(null);
@@ -72,7 +85,8 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
       setError(data.error ?? "Failed to reset password");
       return;
     }
-    setNotice(`New password for ${row.employeeName} (${row.username}): ${newPassword}`);
+    setNotice(`Password updated for ${row.employeeName} (${row.username}).`);
+    setResetDrafts((prev) => ({ ...prev, [row.employeeId]: randomPassword() }));
   }
 
   async function removeLogin(row: Row) {
@@ -92,11 +106,7 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
 
   return (
     <div className="space-y-4">
-      {notice && (
-        <div className="card bg-emerald-50 text-sm text-emerald-800">
-          {notice} <span className="text-emerald-600">(share this with them — it won&apos;t be shown again)</span>
-        </div>
-      )}
+      {notice && <div className="card bg-emerald-50 text-sm text-emerald-800">{notice}</div>}
       {error && <div className="card bg-red-50 text-sm text-red-700">{error}</div>}
 
       <div className="card overflow-x-auto">
@@ -126,13 +136,19 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
                   </td>
                   <td>
                     {row.username ? (
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <input
+                          className="w-32 rounded border border-neutral-300 px-2 py-1 text-xs"
+                          value={resetDraftFor(row.employeeId)}
+                          onChange={(e) => setResetDrafts((prev) => ({ ...prev, [row.employeeId]: e.target.value }))}
+                          placeholder="new password"
+                        />
                         <button
                           onClick={() => resetPassword(row)}
                           disabled={busy}
                           className="rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50 disabled:opacity-50"
                         >
-                          Reset password
+                          Set password
                         </button>
                         <button
                           onClick={() => removeLogin(row)}
@@ -143,12 +159,18 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <input
-                          className="w-32 rounded border border-neutral-300 px-2 py-1 text-xs"
+                          className="w-28 rounded border border-neutral-300 px-2 py-1 text-xs"
                           value={draft.username}
                           onChange={(e) => updateDraft(row.employeeId, { username: e.target.value })}
                           placeholder="username"
+                        />
+                        <input
+                          className="w-32 rounded border border-neutral-300 px-2 py-1 text-xs"
+                          value={draft.password}
+                          onChange={(e) => updateDraft(row.employeeId, { password: e.target.value })}
+                          placeholder="password"
                         />
                         <button
                           onClick={() => createLogin(row)}

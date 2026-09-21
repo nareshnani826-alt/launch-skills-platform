@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdminPage } from "@/lib/auth";
 import ManageUsersPanel from "@/components/ManageUsersPanel";
+import AddEmployeeForm from "@/components/AddEmployeeForm";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,7 @@ export default async function ManageUsersPage() {
           Create a login for an employee so they can sign in and update their own certification stages.
         </p>
       </div>
+      <AddEmployeeForm />
       <ManageUsersPanel rows={rows} />
     </div>
   );
