@@ -27,7 +27,7 @@ export default function SettingsMenu() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Settings"
-        className="rounded p-1 text-lg leading-none hover:bg-neutral-100"
+        className="rounded p-1 text-lg leading-none hover:bg-white/10"
       >
         ⚙️
       </button>

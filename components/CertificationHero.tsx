@@ -44,7 +44,7 @@ const STARS = Array.from({ length: 24 }, (_, i) => ({
 
 const CONFETTI = Array.from({ length: 14 }, (_, i) => ({
   left: `${8 + i * 6.5}%`,
-  color: ["#fbbf24", "#5b4bff", "#34d399", "#f472b6", "#60a5fa"][i % 5],
+  color: ["#CDEEFE", "#80379B", "#DE1B83", "#C41874", "#6B2F85"][i % 5],
   delay: `${(i % 5) * 0.12}s`,
 }));
 
@@ -65,7 +65,10 @@ export default function CertificationHero() {
   const fueling = phase === "fueling";
 
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden bg-gradient-to-b from-[#0f0c29] via-[#241f4e] to-[#3a2f7a]">
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-gradient-to-b from-navy via-[#1a1330] to-launch-purple-deep">
+      {/* signature diagonal brand glow */}
+      <div className="launch-gradient absolute -left-1/4 -top-1/4 h-[80%] w-[80%] rounded-full opacity-20 blur-3xl" />
+
       {/* sky */}
       {STARS.map((s, i) => (
         <span
@@ -89,7 +92,7 @@ export default function CertificationHero() {
         className="absolute bottom-[6%] left-1/2 h-10 w-40 -translate-x-1/2 sm:w-56"
         viewBox="0 0 200 40"
         fill="none"
-        stroke="#8b81c9"
+        stroke="#80379B"
         strokeWidth="2"
       >
         <path d="M60 40 L92 4 M140 40 L108 4" />
@@ -123,9 +126,9 @@ export default function CertificationHero() {
           />
           <defs>
             <linearGradient id="flameGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#fde68a" />
-              <stop offset="60%" stopColor="#f59e0b" />
-              <stop offset="100%" stopColor="#ef4444" />
+              <stop offset="0%" stopColor="#CDEEFE" />
+              <stop offset="45%" stopColor="#f59e0b" />
+              <stop offset="100%" stopColor="#DE1B83" />
             </linearGradient>
           </defs>
 
@@ -135,7 +138,7 @@ export default function CertificationHero() {
             <path d="M20 40 L20 92 Q20 98 26 100 L34 100 Q40 98 40 92 L40 40 Z" />
             <path d="M20 78 L6 100 L20 94 Z" />
             <path d="M40 78 L54 100 L40 94 Z" />
-            <line x1="20" y1="55" x2="40" y2="55" stroke="#5b4bff" strokeWidth="3" />
+            <line x1="20" y1="55" x2="40" y2="55" stroke="#DE1B83" strokeWidth="3" />
             <circle cx="30" cy="66" r="6" />
           </g>
         </svg>

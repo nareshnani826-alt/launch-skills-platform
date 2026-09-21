@@ -36,9 +36,9 @@ export default function LoginPage() {
     <>
       <CertificationHero />
       <div className="flex min-h-[75vh] items-center justify-center">
-        <div className="w-full max-w-sm space-y-4 rounded-2xl border border-white/20 bg-white/10 p-6 shadow-2xl backdrop-blur-xl">
+        <div className="w-full max-w-sm space-y-4 rounded-2xl border border-launch-purple/40 bg-white/10 p-6 shadow-2xl backdrop-blur-xl">
           <div>
-            <h2 className="text-lg font-semibold text-white">Login</h2>
+            <h2 className="launch-gradient-text text-lg font-bold">Login</h2>
             <p className="text-sm text-white/70">Sign in to access the platform.</p>
           </div>
 
@@ -52,7 +52,7 @@ export default function LoginPage() {
               <div>
                 <label className="text-xs font-semibold text-white/70">Username</label>
                 <input
-                  className="mt-1 w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-sm text-white placeholder-white/40 focus:border-white/60 focus:outline-none"
+                  className="mt-1 w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-sm text-white placeholder-white/40 focus:border-launch-cyan focus:outline-none"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   autoFocus
@@ -62,7 +62,7 @@ export default function LoginPage() {
                 <label className="text-xs font-semibold text-white/70">Password</label>
                 <input
                   type="password"
-                  className="mt-1 w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-sm text-white placeholder-white/40 focus:border-white/60 focus:outline-none"
+                  className="mt-1 w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-sm text-white placeholder-white/40 focus:border-launch-cyan focus:outline-none"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -71,7 +71,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded bg-accent px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+                className="launch-gradient w-full rounded px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
               >
                 {loading ? "Signing in..." : "Sign in"}
               </button>

@@ -17,7 +17,7 @@ export default function TabNav({ role }: { role: "ADMIN" | "RESOURCE" }) {
   const pathname = usePathname();
   const tabs = role === "ADMIN" ? ADMIN_TABS : RESOURCE_TABS;
   return (
-    <nav className="border-b border-neutral-200 bg-white">
+    <nav className="border-b border-white/10 bg-navy">
       <div className="mx-auto max-w-6xl px-6">
         <div className="flex gap-1 overflow-x-auto">
           {tabs.map((tab) => {
@@ -27,9 +27,7 @@ export default function TabNav({ role }: { role: "ADMIN" | "RESOURCE" }) {
                 key={tab.href}
                 href={tab.href}
                 className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
-                  active
-                    ? "border-accent text-accent"
-                    : "border-transparent text-neutral-500 hover:text-neutral-800"
+                  active ? "border-launch-pink text-white" : "border-transparent text-white/50 hover:text-white/80"
                 }`}
               >
                 {tab.label}
