@@ -1,0 +1,137 @@
+// Launch Skills & Partnership Intelligence — data model
+// SQLite for local dev / demo. Swap `provider` to "postgresql" and set
+// DATABASE_URL for a real deployment (see README).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum PipelineStage {
+  PLANNED
+  REGISTERED
+  IN_LEARNING
+  EXAM_SCHEDULED
+  CERTIFIED
+  RENEWAL_DUE
+}
+
+model Employee {
+  id                 String               @id @default(cuid())
+  name               String
+  role               String
+  location           String
+  managerName        String?
+  availabilityPct    Int                  @default(100) // % capacity free for new work
+  certifications     EmployeeCertification[]
+  podMemberships     PodRecommendationMember[]
+  createdAt          DateTime             @default(now())
+}
+
+model Certification {
+  id                  String                  @id @default(cuid())
+  name                String                  @unique // e.g. "AZ-204"
+  partner              String                  // "Microsoft" | "Anthropic" | "Databricks" ...
+  category             String                  // e.g. "Associate", "Agentic Development"
+  cost                 Float                   // exam + training cost, USD
+  validityMonths       Int                     @default(24)
+  employeeCertifications EmployeeCertification[]
+  partnerRequirements  PartnerRequirement[]
+  spend                CertificationSpend[]
+  revenueAttributions  RevenueAttribution[]
+}
+
+model EmployeeCertification {
+  id              String        @id @default(cuid())
+  employee        Employee      @relation(fields: [employeeId], references: [id])
+  employeeId      String
+  certification   Certification @relation(fields: [certificationId], references: [id])
+  certificationId String
+  stage           PipelineStage @default(PLANNED)
+  targetDate      DateTime?     // leading-indicator forecast date
+  certifiedDate   DateTime?     // actual completion date, set when stage = CERTIFIED
+  expiresOn       DateTime?     // derived: certifiedDate + validityMonths, drives RENEWAL_DUE
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([employeeId, certificationId])
+}
+
+model PartnerProgram {
+  id            String               @id @default(cuid())
+  name          String               // "Microsoft", "Anthropic", "Databricks"
+  tier          String               // "Solutions Partner", "Preferred", etc.
+  renewalDate   DateTime?
+  requirements  PartnerRequirement[]
+}
+
+model PartnerRequirement {
+  id                String         @id @default(cuid())
+  partnerProgram    PartnerProgram @relation(fields: [partnerProgramId], references: [id])
+  partnerProgramId  String
+  certification     Certification  @relation(fields: [certificationId], references: [id])
+  certificationId   String
+  minimumHeadcount  Int            @default(1)
+  lastReviewedAt    DateTime?      // staleness tracking — partner requirements change yearly
+}
+
+model Opportunity {
+  id                    String                  @id @default(cuid())
+  clientName            String
+  status                String                  @default("OPEN") // OPEN | STAFFED | LOST | WON
+  revenueValue          Float
+  requirements          OpportunityRequirement[]
+  revenueAttributions   RevenueAttribution[]
+  createdAt             DateTime                @default(now())
+}
+
+model OpportunityRequirement {
+  id              String      @id @default(cuid())
+  opportunity     Opportunity @relation(fields: [opportunityId], references: [id])
+  opportunityId   String
+  certificationName String    // free text match against Certification.name for MVP simplicity
+  countNeeded     Int
+}
+
+model CertificationSpend {
+  id              String        @id @default(cuid())
+  certification   Certification @relation(fields: [certificationId], references: [id])
+  certificationId String
+  quarter         String        // "2026-Q3"
+  totalSpend      Float
+}
+
+model RevenueAttribution {
+  id                String        @id @default(cuid())
+  certification     Certification @relation(fields: [certificationId], references: [id])
+  certificationId   String
+  opportunity       Opportunity?  @relation(fields: [opportunityId], references: [id])
+  opportunityId     String?
+  revenueAmount     Float
+  method            String        // e.g. "required-skill-on-won-deal" — see README methodology note
+  quarter           String
+}
+
+model PodRecommendation {
+  id              String                     @id @default(cuid())
+  clientNeed      String
+  techStack       String
+  recommendedLead String?
+  estimatedCost   Float?
+  estimatedMargin Float?
+  createdAt       DateTime                   @default(now())
+  members         PodRecommendationMember[]
+}
+
+model PodRecommendationMember {
+  id                  String            @id @default(cuid())
+  podRecommendation   PodRecommendation @relation(fields: [podRecommendationId], references: [id])
+  podRecommendationId String
+  employee            Employee          @relation(fields: [employeeId], references: [id])
+  employeeId          String
+  roleOnPod           String            // "Pod Lead", "AI Engineer", "Data Engineer"
+}
