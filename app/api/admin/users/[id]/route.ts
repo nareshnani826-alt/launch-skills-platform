@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession, isAdmin } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
-import { createSupabaseAdminClient } from "@/lib/supabase";
+import { createSupabaseAdminClient, upsertSupabaseAuthPassword } from "@/lib/supabase";
 
 // PATCH /api/admin/users/:id  { password }  -- reset a resource account's password
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -22,15 +22,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: "Resource account not found" }, { status: 404 });
   }
 
-  if (!target.authUserId) {
-    return NextResponse.json({ error: "This account is not linked to Supabase Auth" }, { status: 409 });
-  }
-  const { error: authError } = await createSupabaseAdminClient().auth.admin.updateUserById(target.authUserId, { password });
-  if (authError) return NextResponse.json({ error: authError.message }, { status: 400 });
+  // Accounts created before the Supabase Auth migration have no authUserId;
+  // this links (or creates) the auth user so the account can log in.
+  const result = await upsertSupabaseAuthPassword(target.username, password, target.authUserId);
+  if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
 
   await prisma.user.update({
     where: { id: params.id },
-    data: { passwordHash: hashPassword(password), failedLoginAttempts: 0, lockedAt: null },
+    data: { passwordHash: hashPassword(password), authUserId: result.authUserId, failedLoginAttempts: 0, lockedAt: null },
   });
   return NextResponse.json({ ok: true });
 }
