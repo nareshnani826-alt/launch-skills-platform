@@ -21,6 +21,7 @@ export default async function ManageUsersPage() {
     employeeAvailabilityPct: e.availabilityPct,
     userId: e.user?.id ?? null,
     username: e.user?.username ?? null,
+    locked: !!e.user?.lockedAt,
   }));
 
   return (

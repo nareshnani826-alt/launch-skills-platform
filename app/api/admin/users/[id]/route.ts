@@ -21,7 +21,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: "Resource account not found" }, { status: 404 });
   }
 
-  await prisma.user.update({ where: { id: params.id }, data: { passwordHash: hashPassword(password) } });
+  await prisma.user.update({
+    where: { id: params.id },
+    data: { passwordHash: hashPassword(password), failedLoginAttempts: 0, lockedAt: null },
+  });
   return NextResponse.json({ ok: true });
 }
 

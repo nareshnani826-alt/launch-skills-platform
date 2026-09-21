@@ -11,6 +11,7 @@ type Row = {
   employeeAvailabilityPct: number;
   userId: string | null;
   username: string | null;
+  locked: boolean;
 };
 
 function randomPassword(): string {
@@ -121,6 +122,7 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
       return;
     }
     setNotice(`Password updated for ${row.employeeName} (${row.username}) — password: ${newPassword}`);
+    router.refresh();
   }
 
   async function removeLogin(row: Row) {
@@ -207,7 +209,10 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
                   )}
                   <td>
                     {row.username ? (
-                      <span className="badge bg-blue-100 text-blue-700">{row.username}</span>
+                      <span className="flex items-center gap-1">
+                        <span className="badge bg-blue-100 text-blue-700">{row.username}</span>
+                        {row.locked && <span className="badge bg-red-100 text-red-700">Locked</span>}
+                      </span>
                     ) : (
                       <span className="text-neutral-400">No login</span>
                     )}
