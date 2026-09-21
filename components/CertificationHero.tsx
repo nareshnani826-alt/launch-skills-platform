@@ -2,29 +2,39 @@
 
 import { useEffect, useState } from "react";
 
-type Phase = "running" | "arriving" | "celebrating" | "reset";
+type Phase = "fueling" | "igniting" | "launching" | "celebrating" | "reset";
 
 const DURATIONS: Record<Phase, number> = {
-  running: 4500,
-  arriving: 1200,
-  celebrating: 2800,
+  fueling: 3200,
+  igniting: 900,
+  launching: 2600,
+  celebrating: 2600,
   reset: 300,
 };
 
-const MILESTONES = [
-  { label: "Planned", bottom: "20%", scale: 1 },
-  { label: "Registered", bottom: "34%", scale: 0.86 },
-  { label: "Learning", bottom: "47%", scale: 0.72 },
-  { label: "Exam", bottom: "58%", scale: 0.6 },
-  { label: "Certified", bottom: "68%", scale: 0.5 },
-];
+const NEXT_PHASE: Record<Phase, Phase> = {
+  fueling: "igniting",
+  igniting: "launching",
+  launching: "celebrating",
+  celebrating: "reset",
+  reset: "fueling",
+};
 
 const CAPTIONS: Record<Phase, string> = {
-  running: "Tracking every certification milestone…",
-  arriving: "Certification complete.",
+  fueling: "Loading certifications as fuel…",
+  igniting: "Certification complete. Ignition sequence go.",
+  launching: "🚀 Launching skills into the market…",
   celebrating: "🎉 Opportunity matched — job offer landed!",
-  reset: "Tracking every certification milestone…",
+  reset: "Loading certifications as fuel…",
 };
+
+const FUEL_BADGES = [
+  { label: "AZ-204", fx: "-150px", fy: "-40px", delay: "0s" },
+  { label: "Claude Certified", fx: "140px", fy: "-60px", delay: "0.55s" },
+  { label: "Databricks", fx: "-120px", fy: "60px", delay: "1.1s" },
+  { label: "MCP Practitioner", fx: "130px", fy: "70px", delay: "1.65s" },
+  { label: "AI-102", fx: "0px", fy: "-110px", delay: "2.2s" },
+];
 
 const STARS = Array.from({ length: 24 }, (_, i) => ({
   top: `${(i * 37) % 55}%`,
@@ -39,28 +49,23 @@ const CONFETTI = Array.from({ length: 14 }, (_, i) => ({
 }));
 
 export default function CertificationHero() {
-  const [phase, setPhase] = useState<Phase>("running");
+  const [phase, setPhase] = useState<Phase>("fueling");
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setPhase((prev) => {
-        if (prev === "running") return "arriving";
-        if (prev === "arriving") return "celebrating";
-        if (prev === "celebrating") return "reset";
-        return "running";
-      });
-    }, DURATIONS[phase]);
+    const timer = setTimeout(() => setPhase(NEXT_PHASE[phase]), DURATIONS[phase]);
     return () => clearTimeout(timer);
   }, [phase]);
 
-  const runnerAdvancing = phase === "running" || phase === "arriving" || phase === "celebrating";
-  const runnerTransform = runnerAdvancing ? "translateY(-230px) scale(0.34)" : "translateY(0) scale(1)";
-  const runnerTransition = phase === "reset" ? "none" : "transform 4.5s cubic-bezier(0.45,0,0.2,1), opacity 0.3s";
-  const runnerOpacity = phase === "reset" ? 0 : 1;
-  const goalActive = phase === "arriving" || phase === "celebrating";
+  const departed = phase === "launching" || phase === "celebrating";
+  const rocketTransform = departed ? "translateY(-620px) scale(0.55)" : "translateY(0) scale(1)";
+  const rocketTransition = phase === "reset" ? "none" : "transform 2.6s cubic-bezier(0.55,0,0.2,1), opacity 0.3s";
+  const rocketOpacity = phase === "reset" ? 0 : 1;
+  const shaking = phase === "igniting";
+  const flameOn = phase === "igniting" || phase === "launching";
+  const fueling = phase === "fueling";
 
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden bg-gradient-to-b from-[#151233] via-[#241f4e] to-[#3a2f7a]">
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-gradient-to-b from-[#0f0c29] via-[#241f4e] to-[#3a2f7a]">
       {/* sky */}
       {STARS.map((s, i) => (
         <span
@@ -78,95 +83,60 @@ export default function CertificationHero() {
         style={{ "--cdur": "26s", "--cdelay": "4s" } as React.CSSProperties}
       />
 
-      {/* goal: office building at the horizon */}
-      <div
-        className={`cert-goal absolute left-1/2 top-[16%] -translate-x-1/2 text-5xl sm:text-6xl ${
-          goalActive ? "is-active" : ""
-        }`}
+      {/* launch pad */}
+      <div className="absolute bottom-[6%] left-1/2 h-2 w-40 -translate-x-1/2 rounded-full bg-black/30 blur-sm sm:w-56" />
+      <svg
+        className="absolute bottom-[6%] left-1/2 h-10 w-40 -translate-x-1/2 sm:w-56"
+        viewBox="0 0 200 40"
+        fill="none"
+        stroke="#8b81c9"
+        strokeWidth="2"
       >
-        🏢
-      </div>
-      <p className="absolute left-1/2 top-[26%] -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold uppercase tracking-widest text-amber-200/80 sm:text-xs">
-        Opportunity Matched
-      </p>
+        <path d="M60 40 L92 4 M140 40 L108 4" />
+        <path d="M40 40 L160 40" />
+      </svg>
 
-      {/* perspective road */}
-      <div
-        className="absolute bottom-0 left-1/2 h-[70%] w-[70%] -translate-x-1/2 sm:w-[46%]"
-        style={{ clipPath: "polygon(38% 0%, 62% 0%, 100% 100%, 0% 100%)" }}
-      >
-        <div className="h-full w-full bg-gradient-to-t from-[#1c1840] to-[#2d2766]" />
+      {/* fuel badges flying in during fueling phase */}
+      {FUEL_BADGES.map((b) => (
         <div
-          className="cert-road-line absolute left-1/2 top-0 h-full w-1 -translate-x-1/2"
-          style={{
-            backgroundImage: "repeating-linear-gradient(to bottom, rgba(251,191,36,0.85) 0 24px, transparent 24px 48px)",
-          }}
-        />
-      </div>
-
-      {/* milestones along the road */}
-      {MILESTONES.map((m) => (
-        <div
-          key={m.label}
-          className="absolute left-1/2 flex -translate-x-1/2 flex-col items-center"
-          style={{ bottom: m.bottom, transform: `translateX(-50%) scale(${m.scale})` }}
+          key={b.label}
+          className={`absolute bottom-[12%] left-1/2 whitespace-nowrap rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-medium text-white shadow-lg backdrop-blur-sm sm:text-xs ${
+            fueling ? "cert-fuel-in" : "opacity-0"
+          }`}
+          style={{ "--fx": b.fx, "--fy": b.fy, "--fdelay": b.delay } as React.CSSProperties}
         >
-          <div className="cert-milestone-dot h-3 w-3 rounded-full bg-amber-300" style={{ "--mdelay": "0.3s" } as React.CSSProperties} />
-          <span className="mt-1 whitespace-nowrap text-[10px] font-medium text-white/70">{m.label}</span>
+          🎓 {b.label}
         </div>
       ))}
 
-      {/* runner */}
+      {/* rocket */}
       <div
-        className={`cert-runner absolute bottom-[6%] left-1/2 -translate-x-1/2 ${runnerAdvancing ? "is-moving" : ""} ${
-          phase === "celebrating" ? "is-celebrating" : ""
-        }`}
-        style={{ transform: `translateX(-50%) ${runnerTransform}`, transition: runnerTransition, opacity: runnerOpacity }}
+        className={`absolute bottom-[8%] left-1/2 -translate-x-1/2 ${shaking ? "cert-rocket-shake" : ""}`}
+        style={{ transform: `translateX(-50%) ${rocketTransform}`, transition: rocketTransition, opacity: rocketOpacity }}
       >
-        <svg
-          className="cert-runner-body-group h-24 w-16 overflow-visible"
-          viewBox="0 0 64 100"
-          fill="none"
-          stroke="#f5efe0"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          {/* head + hairline */}
-          <circle cx="32" cy="12" r="8" />
-          <path d="M25 8 Q32 2 39 8" strokeWidth="1.6" />
-          {/* neck */}
-          <line x1="32" y1="20" x2="32" y2="24" />
-          {/* suit jacket */}
-          <path d="M23 24 L41 24 L37 53 L27 53 Z" />
-          {/* lapels */}
-          <path d="M27 24 L32 35 L37 24" strokeWidth="1.6" />
-          {/* tie */}
+        <svg width="60" height="150" viewBox="0 0 60 150" className="overflow-visible">
+          {/* flame */}
           <path
-            d="M30.5 25.5 L33.5 25.5 L35 45 L32 50 L29 45 Z"
-            fill="#f5a524"
-            stroke="#b3760f"
-            strokeWidth="1"
+            className={`cert-flame origin-top ${flameOn ? "opacity-100" : "opacity-0"}`}
+            d="M22 100 Q30 125 22 145 Q30 138 38 145 Q30 125 38 100 Z"
+            fill="url(#flameGradient)"
           />
+          <defs>
+            <linearGradient id="flameGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#fde68a" />
+              <stop offset="60%" stopColor="#f59e0b" />
+              <stop offset="100%" stopColor="#ef4444" />
+            </linearGradient>
+          </defs>
 
-          {/* back arm */}
-          <g className="cert-arm-back" style={{ transformBox: "fill-box", transformOrigin: "top center" }}>
-            <path d="M38 26 L45 37 L41 47" />
-          </g>
-          {/* front arm */}
-          <g className="cert-arm-front" style={{ transformBox: "fill-box", transformOrigin: "top center" }}>
-            <path d="M26 26 L19 37 L23 47" />
-          </g>
-
-          {/* back leg */}
-          <g className="cert-leg-back" style={{ transformBox: "fill-box", transformOrigin: "top center" }}>
-            <path d="M35 53 L41 69 L37 83" />
-            <path d="M37 83 L44 85" strokeWidth="2" />
-          </g>
-          {/* front leg */}
-          <g className="cert-leg-front" style={{ transformBox: "fill-box", transformOrigin: "top center" }}>
-            <path d="M29 53 L23 69 L27 83" />
-            <path d="M27 83 L20 85" strokeWidth="2" />
+          {/* body */}
+          <g fill="none" stroke="#f5efe0" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M30 0 Q20 22 20 40 L40 40 Q40 22 30 0 Z" />
+            <path d="M20 40 L20 92 Q20 98 26 100 L34 100 Q40 98 40 92 L40 40 Z" />
+            <path d="M20 78 L6 100 L20 94 Z" />
+            <path d="M40 78 L54 100 L40 94 Z" />
+            <line x1="20" y1="55" x2="40" y2="55" stroke="#5b4bff" strokeWidth="3" />
+            <circle cx="30" cy="66" r="6" />
           </g>
         </svg>
       </div>
@@ -174,11 +144,12 @@ export default function CertificationHero() {
       {/* celebration burst */}
       {phase === "celebrating" && (
         <>
-          <div className="absolute left-1/2 top-[14%] -translate-x-1/2 text-4xl">💼</div>
+          <div className="absolute left-1/2 top-[10%] -translate-x-1/2 text-4xl">🌟</div>
+          <div className="absolute left-1/2 top-[20%] -translate-x-1/2 text-3xl">💼</div>
           {CONFETTI.map((c, i) => (
             <span
               key={i}
-              className="cert-confetti absolute top-[14%] h-2 w-2 rounded-sm"
+              className="cert-confetti absolute top-[10%] h-2 w-2 rounded-sm"
               style={{ left: c.left, backgroundColor: c.color, "--pdelay": c.delay } as React.CSSProperties}
             />
           ))}
