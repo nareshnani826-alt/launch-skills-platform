@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isAdminSession } from "@/lib/auth";
 import { PipelineStage } from "@prisma/client";
 
 const STAGES = ["PLANNED", "REGISTERED", "IN_LEARNING", "EXAM_SCHEDULED", "CERTIFIED", "RENEWAL_DUE"];
 
 // PATCH /api/pipeline/:id  { stage: "CERTIFIED" }
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  if (!isAdminSession()) {
+    return NextResponse.json({ error: "Admin login required" }, { status: 401 });
+  }
+
   const body = await req.json();
   const stage = body.stage as string;
 

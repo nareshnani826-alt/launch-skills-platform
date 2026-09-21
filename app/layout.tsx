@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import TabNav from "@/components/TabNav";
+import AuthStatus from "@/components/AuthStatus";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,9 +13,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <header className="border-b border-neutral-200 bg-white px-6 py-4">
-          <div className="mx-auto max-w-6xl">
-            <h1 className="text-lg font-semibold">Launch Skills &amp; Partnership Intelligence</h1>
-            <p className="text-sm text-neutral-500">Certification &amp; Partner Readiness Platform</p>
+          <div className="mx-auto flex max-w-6xl items-start justify-between">
+            <div>
+              <h1 className="text-lg font-semibold">Launch Skills &amp; Partnership Intelligence</h1>
+              <p className="text-sm text-neutral-500">Certification &amp; Partner Readiness Platform</p>
+            </div>
+            <AuthStatus />
           </div>
         </header>
         <TabNav />
