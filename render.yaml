@@ -11,6 +11,14 @@ services:
         sync: false
       - key: DIRECT_URL
         sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: AUTH_EMAIL_DOMAIN
+        value: launchskills.local
       - key: ADMIN_USERNAME
         sync: false
       - key: ADMIN_PASSWORD

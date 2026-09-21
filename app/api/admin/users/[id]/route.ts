@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession, isAdmin } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
+import { createSupabaseAdminClient } from "@/lib/supabase";
 
 // PATCH /api/admin/users/:id  { password }  -- reset a resource account's password
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -20,6 +21,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!target || target.role !== "RESOURCE") {
     return NextResponse.json({ error: "Resource account not found" }, { status: 404 });
   }
+
+  if (!target.authUserId) {
+    return NextResponse.json({ error: "This account is not linked to Supabase Auth" }, { status: 409 });
+  }
+  const { error: authError } = await createSupabaseAdminClient().auth.admin.updateUserById(target.authUserId, { password });
+  if (authError) return NextResponse.json({ error: authError.message }, { status: 400 });
 
   await prisma.user.update({
     where: { id: params.id },
@@ -40,6 +47,10 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ error: "Resource account not found" }, { status: 404 });
   }
 
+  if (target.authUserId) {
+    const { error: authError } = await createSupabaseAdminClient().auth.admin.deleteUser(target.authUserId);
+    if (authError) return NextResponse.json({ error: authError.message }, { status: 400 });
+  }
   await prisma.user.delete({ where: { id: params.id } });
   return NextResponse.json({ ok: true });
 }

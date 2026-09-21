@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession, isAdmin } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
+import { authEmailForUsername, createSupabaseAdminClient } from "@/lib/supabase";
 
 // POST /api/admin/users  { employeeId, username, password }
 // Creates a RESOURCE login account linked to an employee.
@@ -36,8 +37,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "That username is already taken" }, { status: 409 });
   }
 
+  const { data: authData, error: authError } = await createSupabaseAdminClient().auth.admin.createUser({
+    email: authEmailForUsername(username),
+    password,
+    email_confirm: true,
+  });
+  if (authError || !authData.user) {
+    return NextResponse.json({ error: authError?.message ?? "Failed to create Supabase Auth user" }, { status: 400 });
+  }
+
   const user = await prisma.user.create({
-    data: { username, passwordHash: hashPassword(password), role: "RESOURCE", employeeId },
+    data: { username, passwordHash: hashPassword(password), authUserId: authData.user.id, role: "RESOURCE", employeeId },
   });
 
   return NextResponse.json({ id: user.id, username: user.username, role: user.role, employeeId: user.employeeId });
