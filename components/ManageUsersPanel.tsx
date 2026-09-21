@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type Row = {
@@ -22,6 +22,7 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
   const router = useRouter();
   const [drafts, setDrafts] = useState<Record<string, { username: string; password: string }>>({});
   const [resetDrafts, setResetDrafts] = useState<Record<string, string>>({});
+  const [openLoginId, setOpenLoginId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<{ name: string; role: string; location: string; availabilityPct: number } | null>(
     null
@@ -42,6 +43,12 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
 
   function resetDraftFor(employeeId: string) {
     return resetDrafts[employeeId] ?? "";
+  }
+
+  function toggleLoginPanel(employeeId: string) {
+    setOpenLoginId((prev) => (prev === employeeId ? null : employeeId));
+    setError(null);
+    setNotice(null);
   }
 
   function startEdit(row: Row) {
@@ -97,6 +104,7 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
       return;
     }
     setNotice(`Created login "${draft.username}" for ${row.employeeName} — password: ${draft.password}`);
+    setOpenLoginId(null);
     router.refresh();
   }
 
@@ -122,6 +130,7 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
       return;
     }
     setNotice(`Password updated for ${row.employeeName} (${row.username}) — password: ${newPassword}`);
+    setOpenLoginId(null);
     router.refresh();
   }
 
@@ -137,6 +146,7 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
       setError(data.error ?? "Failed to remove login");
       return;
     }
+    setOpenLoginId(null);
     router.refresh();
   }
 
@@ -162,157 +172,193 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
               const draft = draftFor(row.employeeId, row.employeeName);
               const busy = busyId === row.employeeId;
               const editing = editingId === row.employeeId && editDraft;
+              const loginPanelOpen = openLoginId === row.employeeId;
 
               return (
-                <tr key={row.employeeId}>
-                  {editing ? (
-                    <>
-                      <td>
-                        <input
-                          className="w-28 rounded border border-neutral-300 px-2 py-1 text-xs"
-                          value={editDraft!.name}
-                          onChange={(e) => setEditDraft({ ...editDraft!, name: e.target.value })}
-                        />
-                      </td>
-                      <td>
-                        <input
-                          className="w-24 rounded border border-neutral-300 px-2 py-1 text-xs"
-                          value={editDraft!.role}
-                          onChange={(e) => setEditDraft({ ...editDraft!, role: e.target.value })}
-                        />
-                      </td>
-                      <td>
-                        <input
-                          className="w-24 rounded border border-neutral-300 px-2 py-1 text-xs"
-                          value={editDraft!.location}
-                          onChange={(e) => setEditDraft({ ...editDraft!, location: e.target.value })}
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          min={0}
-                          max={100}
-                          className="w-16 rounded border border-neutral-300 px-2 py-1 text-xs"
-                          value={editDraft!.availabilityPct}
-                          onChange={(e) => setEditDraft({ ...editDraft!, availabilityPct: Number(e.target.value) })}
-                        />
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td>{row.employeeName}</td>
-                      <td>{row.employeeRole}</td>
-                      <td>{row.employeeLocation}</td>
-                      <td>{row.employeeAvailabilityPct}%</td>
-                    </>
-                  )}
-                  <td>
-                    {row.username ? (
-                      <span className="flex items-center gap-1">
-                        <span className="badge bg-blue-100 text-blue-700">{row.username}</span>
-                        {row.locked && <span className="badge bg-red-100 text-red-700">Locked</span>}
-                      </span>
-                    ) : (
-                      <span className="text-neutral-400">No login</span>
-                    )}
-                  </td>
-                  <td>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {editing ? (
-                        <>
-                          <button
-                            onClick={() => saveEdit(row)}
-                            disabled={busy}
-                            className="rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
-                          >
-                            {busy ? "Saving..." : "Save"}
-                          </button>
-                          <button
-                            onClick={() => {
-                              setEditingId(null);
-                              setEditDraft(null);
-                            }}
-                            disabled={busy}
-                            className="rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50 disabled:opacity-50"
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => startEdit(row)}
-                          className="rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50"
-                        >
-                          Edit
-                        </button>
-                      )}
-
-                      {!editing && row.username && (
-                        <>
+                <Fragment key={row.employeeId}>
+                  <tr>
+                    {editing ? (
+                      <>
+                        <td>
                           <input
                             className="w-28 rounded border border-neutral-300 px-2 py-1 text-xs"
-                            value={resetDraftFor(row.employeeId)}
-                            onChange={(e) => setResetDrafts((prev) => ({ ...prev, [row.employeeId]: e.target.value }))}
-                            placeholder="new password"
+                            value={editDraft!.name}
+                            onChange={(e) => setEditDraft({ ...editDraft!, name: e.target.value })}
                           />
-                          <button
-                            onClick={() => setResetDrafts((prev) => ({ ...prev, [row.employeeId]: randomPassword() }))}
-                            className="rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50"
-                            title="Generate a random password"
-                          >
-                            Generate
-                          </button>
-                          <button
-                            onClick={() => resetPassword(row)}
-                            disabled={busy || resetDraftFor(row.employeeId).length < 8}
-                            className="rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50 disabled:opacity-50"
-                          >
-                            Set password
-                          </button>
-                          <button
-                            onClick={() => removeLogin(row)}
-                            disabled={busy}
-                            className="rounded border border-red-300 px-2 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
-                          >
-                            Remove login
-                          </button>
-                        </>
-                      )}
-
-                      {!editing && !row.username && (
-                        <>
+                        </td>
+                        <td>
                           <input
                             className="w-24 rounded border border-neutral-300 px-2 py-1 text-xs"
-                            value={draft.username}
-                            onChange={(e) => updateDraft(row.employeeId, { username: e.target.value })}
-                            placeholder="username"
+                            value={editDraft!.role}
+                            onChange={(e) => setEditDraft({ ...editDraft!, role: e.target.value })}
                           />
+                        </td>
+                        <td>
                           <input
-                            className="w-28 rounded border border-neutral-300 px-2 py-1 text-xs"
-                            value={draft.password}
-                            onChange={(e) => updateDraft(row.employeeId, { password: e.target.value })}
-                            placeholder="password"
+                            className="w-24 rounded border border-neutral-300 px-2 py-1 text-xs"
+                            value={editDraft!.location}
+                            onChange={(e) => setEditDraft({ ...editDraft!, location: e.target.value })}
                           />
-                          <button
-                            onClick={() => updateDraft(row.employeeId, { password: randomPassword() })}
-                            className="rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50"
-                            title="Generate a random password"
-                          >
-                            Generate
-                          </button>
-                          <button
-                            onClick={() => createLogin(row)}
-                            disabled={busy || draft.password.length < 8}
-                            className="rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
-                          >
-                            {busy ? "Creating..." : "Create login"}
-                          </button>
-                        </>
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            className="w-16 rounded border border-neutral-300 px-2 py-1 text-xs"
+                            value={editDraft!.availabilityPct}
+                            onChange={(e) => setEditDraft({ ...editDraft!, availabilityPct: Number(e.target.value) })}
+                          />
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td>{row.employeeName}</td>
+                        <td>{row.employeeRole}</td>
+                        <td>{row.employeeLocation}</td>
+                        <td>{row.employeeAvailabilityPct}%</td>
+                      </>
+                    )}
+                    <td>
+                      {row.username ? (
+                        <span className="flex items-center gap-1">
+                          <span className="badge bg-blue-100 text-blue-700">{row.username}</span>
+                          {row.locked && <span className="badge bg-red-100 text-red-700">Locked</span>}
+                        </span>
+                      ) : (
+                        <span className="text-neutral-400">No login</span>
                       )}
-                    </div>
-                  </td>
-                </tr>
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        {editing ? (
+                          <>
+                            <button
+                              onClick={() => saveEdit(row)}
+                              disabled={busy}
+                              className="rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
+                            >
+                              {busy ? "Saving..." : "Save"}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingId(null);
+                                setEditDraft(null);
+                              }}
+                              disabled={busy}
+                              className="rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50 disabled:opacity-50"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => startEdit(row)}
+                            className="w-16 rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50"
+                          >
+                            Edit
+                          </button>
+                        )}
+                        <button
+                          onClick={() => toggleLoginPanel(row.employeeId)}
+                          className={`w-28 rounded border px-2 py-1 text-xs ${
+                            loginPanelOpen
+                              ? "border-accent bg-accent/10 text-accent"
+                              : "border-neutral-300 hover:bg-neutral-50"
+                          }`}
+                        >
+                          {row.username ? "Manage login" : "Create login"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  {loginPanelOpen && (
+                    <tr className="bg-neutral-50">
+                      <td colSpan={6}>
+                        {row.username ? (
+                          <div className="flex flex-wrap items-end gap-2 py-1">
+                            <div>
+                              <label className="block text-xs font-semibold text-neutral-500">New password</label>
+                              <input
+                                className="mt-1 w-40 rounded border border-neutral-300 px-2 py-1 text-xs"
+                                value={resetDraftFor(row.employeeId)}
+                                onChange={(e) => setResetDrafts((prev) => ({ ...prev, [row.employeeId]: e.target.value }))}
+                                placeholder="new password"
+                              />
+                            </div>
+                            <button
+                              onClick={() => setResetDrafts((prev) => ({ ...prev, [row.employeeId]: randomPassword() }))}
+                              className="rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50"
+                            >
+                              Generate
+                            </button>
+                            <button
+                              onClick={() => resetPassword(row)}
+                              disabled={busy || resetDraftFor(row.employeeId).length < 8}
+                              className="rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
+                            >
+                              Set password
+                            </button>
+                            <button
+                              onClick={() => removeLogin(row)}
+                              disabled={busy}
+                              className="rounded border border-red-300 px-2 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+                            >
+                              Remove login
+                            </button>
+                            <button
+                              onClick={() => setOpenLoginId(null)}
+                              className="text-xs text-neutral-500 underline hover:text-neutral-800"
+                            >
+                              Close
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap items-end gap-2 py-1">
+                            <div>
+                              <label className="block text-xs font-semibold text-neutral-500">Username</label>
+                              <input
+                                className="mt-1 w-36 rounded border border-neutral-300 px-2 py-1 text-xs"
+                                value={draft.username}
+                                onChange={(e) => updateDraft(row.employeeId, { username: e.target.value })}
+                                placeholder="username"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold text-neutral-500">Password</label>
+                              <input
+                                className="mt-1 w-40 rounded border border-neutral-300 px-2 py-1 text-xs"
+                                value={draft.password}
+                                onChange={(e) => updateDraft(row.employeeId, { password: e.target.value })}
+                                placeholder="password"
+                              />
+                            </div>
+                            <button
+                              onClick={() => updateDraft(row.employeeId, { password: randomPassword() })}
+                              className="rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50"
+                            >
+                              Generate
+                            </button>
+                            <button
+                              onClick={() => createLogin(row)}
+                              disabled={busy || draft.password.length < 8}
+                              className="rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
+                            >
+                              {busy ? "Creating..." : "Create login"}
+                            </button>
+                            <button
+                              onClick={() => setOpenLoginId(null)}
+                              className="text-xs text-neutral-500 underline hover:text-neutral-800"
+                            >
+                              Close
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               );
             })}
           </tbody>
