@@ -2,36 +2,40 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export default async function PartnerReadinessPage() {
-  const programs = await prisma.partnerProgram.findMany({
-    include: { requirements: { include: { certification: true } } },
-  });
+const IN_PROGRESS_STAGES = ["PLANNED", "REGISTERED", "IN_LEARNING", "EXAM_SCHEDULED"] as const;
 
-  const data = await Promise.all(
-    programs.map(async (program) => {
-      const reqRows = await Promise.all(
-        program.requirements.map(async (req) => {
-          const certifiedCount = await prisma.employeeCertification.count({
-            where: { certificationId: req.certificationId, stage: "CERTIFIED" },
-          });
-          const inProgressCount = await prisma.employeeCertification.count({
-            where: {
-              certificationId: req.certificationId,
-              stage: { in: ["PLANNED", "REGISTERED", "IN_LEARNING", "EXAM_SCHEDULED"] },
-            },
-          });
-          return {
-            certification: req.certification.name,
-            minimumHeadcount: req.minimumHeadcount,
-            certifiedCount,
-            inProgressCount,
-            met: certifiedCount >= req.minimumHeadcount,
-          };
-        })
-      );
-      return { program, reqRows };
-    })
-  );
+export default async function PartnerReadinessPage() {
+  const [programs, stageCounts] = await Promise.all([
+    prisma.partnerProgram.findMany({
+      include: { requirements: { include: { certification: true } } },
+    }),
+    prisma.employeeCertification.groupBy({
+      by: ["certificationId", "stage"],
+      _count: { _all: true },
+    }),
+  ]);
+
+  const countsByCert = new Map<string, { certifiedCount: number; inProgressCount: number }>();
+  for (const row of stageCounts) {
+    const entry = countsByCert.get(row.certificationId) ?? { certifiedCount: 0, inProgressCount: 0 };
+    if (row.stage === "CERTIFIED") entry.certifiedCount += row._count._all;
+    else if ((IN_PROGRESS_STAGES as readonly string[]).includes(row.stage)) entry.inProgressCount += row._count._all;
+    countsByCert.set(row.certificationId, entry);
+  }
+
+  const data = programs.map((program) => {
+    const reqRows = program.requirements.map((req) => {
+      const counts = countsByCert.get(req.certificationId) ?? { certifiedCount: 0, inProgressCount: 0 };
+      return {
+        certification: req.certification.name,
+        minimumHeadcount: req.minimumHeadcount,
+        certifiedCount: counts.certifiedCount,
+        inProgressCount: counts.inProgressCount,
+        met: counts.certifiedCount >= req.minimumHeadcount,
+      };
+    });
+    return { program, reqRows };
+  });
 
   return (
     <div className="space-y-6">

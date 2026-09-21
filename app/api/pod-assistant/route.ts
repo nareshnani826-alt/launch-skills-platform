@@ -10,16 +10,19 @@ export async function POST(req: NextRequest) {
 
   const candidatesByCert = await Promise.all(
     techStack.map(async (certName) => {
-      const cert = await prisma.certification.findUnique({ where: { name: certName } });
+      const cert = await prisma.certification.findUnique({
+        where: { name: certName },
+        include: {
+          employeeCertifications: {
+            where: { stage: "CERTIFIED" },
+            include: { employee: true },
+            orderBy: { employee: { availabilityPct: "desc" } },
+          },
+        },
+      });
       if (!cert) return { certName, candidates: [] as any[] };
 
-      const rows = await prisma.employeeCertification.findMany({
-        where: { certificationId: cert.id, stage: "CERTIFIED" },
-        include: { employee: true },
-        orderBy: { employee: { availabilityPct: "desc" } },
-      });
-
-      const candidates = rows.map((ec) => ({
+      const candidates = cert.employeeCertifications.map((ec) => ({
         id: ec.employee.id,
         name: ec.employee.name,
         role: ec.employee.role,

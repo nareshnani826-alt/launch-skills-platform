@@ -3,6 +3,7 @@ services:
     name: launch-skills-platform
     runtime: node
     plan: free
+    region: singapore
     buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:

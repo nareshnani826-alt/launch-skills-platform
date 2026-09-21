@@ -9,34 +9,34 @@ export async function POST(req: NextRequest) {
 
   const results = await Promise.all(
     requirements.map(async (r) => {
-      const cert = await prisma.certification.findUnique({ where: { name: r.certificationName } });
+      const cert = await prisma.certification.findUnique({
+        where: { name: r.certificationName },
+        include: {
+          employeeCertifications: {
+            where: { stage: { in: ["CERTIFIED", "PLANNED", "REGISTERED", "IN_LEARNING", "EXAM_SCHEDULED"] } },
+            include: { employee: true },
+          },
+        },
+      });
       if (!cert) {
         return { ...r, error: "Certification not found in catalog", available: [], busy: [], inProgress: [], gap: r.countNeeded };
       }
 
-      const certifiedRows = await prisma.employeeCertification.findMany({
-        where: { certificationId: cert.id, stage: "CERTIFIED" },
-        include: { employee: true },
-      });
-      const inProgressRows = await prisma.employeeCertification.findMany({
-        where: {
-          certificationId: cert.id,
-          stage: { in: ["PLANNED", "REGISTERED", "IN_LEARNING", "EXAM_SCHEDULED"] },
-        },
-        include: { employee: true },
-      });
-
-      const certifiedEmployees = certifiedRows.map((ec) => ({
-        id: ec.employee.id,
-        name: ec.employee.name,
-        role: ec.employee.role,
-        availabilityPct: ec.employee.availabilityPct,
-      }));
-      const inProgressEmployees = inProgressRows.map((ec) => ({
-        id: ec.employee.id,
-        name: ec.employee.name,
-        stage: ec.stage,
-      }));
+      const certifiedEmployees = cert.employeeCertifications
+        .filter((ec) => ec.stage === "CERTIFIED")
+        .map((ec) => ({
+          id: ec.employee.id,
+          name: ec.employee.name,
+          role: ec.employee.role,
+          availabilityPct: ec.employee.availabilityPct,
+        }));
+      const inProgressEmployees = cert.employeeCertifications
+        .filter((ec) => ec.stage !== "CERTIFIED")
+        .map((ec) => ({
+          id: ec.employee.id,
+          name: ec.employee.name,
+          stage: ec.stage,
+        }));
 
       const available = certifiedEmployees.filter((e) => e.availabilityPct >= 30);
       const busy = certifiedEmployees.filter((e) => e.availabilityPct < 30);
