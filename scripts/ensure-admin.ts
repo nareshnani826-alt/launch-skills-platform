@@ -7,15 +7,19 @@ async function main() {
   const username = process.env.ADMIN_USERNAME;
   const password = process.env.ADMIN_PASSWORD;
 
-  if (!username || !password) {
-    throw new Error("ADMIN_USERNAME and ADMIN_PASSWORD must be set");
+  if (!username) {
+    throw new Error("ADMIN_USERNAME must be set");
   }
 
-  await prisma.user.upsert({
-    where: { username },
-    update: { passwordHash: hashPassword(password), role: "ADMIN", failedLoginAttempts: 0, lockedAt: null },
-    create: { username, passwordHash: hashPassword(password), role: "ADMIN" },
-  });
+  const existingAdmin = await prisma.user.findUnique({ where: { username } });
+  if (existingAdmin) {
+    await prisma.user.update({ where: { id: existingAdmin.id }, data: { role: "ADMIN" } });
+  } else {
+    if (!password) {
+      throw new Error("ADMIN_PASSWORD must be set when creating the first admin");
+    }
+    await prisma.user.create({ data: { username, passwordHash: hashPassword(password), role: "ADMIN" } });
+  }
 
   console.log(`Admin login ready: ${username}`);
 }
