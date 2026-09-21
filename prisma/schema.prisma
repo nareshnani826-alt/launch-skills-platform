@@ -75,6 +75,7 @@ model EmployeeCertification {
   targetDate      DateTime?     // leading-indicator forecast date
   certifiedDate   DateTime?     // actual completion date, set when stage = CERTIFIED
   expiresOn       DateTime?     // derived: certifiedDate + validityMonths, drives RENEWAL_DUE
+  spend           CertificationSpend?
   updatedAt       DateTime      @updatedAt
 
   @@unique([employeeId, certificationId])
@@ -120,6 +121,8 @@ model CertificationSpend {
   id              String        @id @default(cuid())
   certification   Certification @relation(fields: [certificationId], references: [id])
   certificationId String
+  employeeCertification   EmployeeCertification? @relation(fields: [employeeCertificationId], references: [id])
+  employeeCertificationId String? @unique
   quarter         String        // "2026-Q3"
   totalSpend      Float
 }

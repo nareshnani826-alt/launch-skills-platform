@@ -58,5 +58,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     data,
   });
 
+  if (data.stage === "CERTIFIED" && existing.stage !== "CERTIFIED") {
+    const now = new Date();
+    const quarter = `${now.getUTCFullYear()}-Q${Math.floor(now.getUTCMonth() / 3) + 1}`;
+    await prisma.certificationSpend.create({
+      data: {
+        certificationId: existing.certificationId,
+        employeeCertificationId: existing.id,
+        quarter,
+        totalSpend: existing.certification.cost,
+      },
+    });
+  }
+
   return NextResponse.json(updated);
 }
