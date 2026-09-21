@@ -32,117 +32,101 @@ table.data td {
   color: transparent;
 }
 
-/* --- Login page 3D certification journey scene --- */
+/* --- Login page ambient scene --- */
 
-@keyframes star-twinkle {
+@keyframes blob-drift-1 {
   0%,
   100% {
-    opacity: 0.2;
+    transform: translate(-10%, -10%) scale(1);
   }
   50% {
-    opacity: 1;
+    transform: translate(8%, 6%) scale(1.12);
+  }
+}
+@keyframes blob-drift-2 {
+  0%,
+  100% {
+    transform: translate(6%, 8%) scale(1);
+  }
+  50% {
+    transform: translate(-8%, -4%) scale(1.08);
+  }
+}
+@keyframes blob-drift-3 {
+  0%,
+  100% {
+    transform: translate(-4%, 6%) scale(1);
+  }
+  50% {
+    transform: translate(6%, -8%) scale(1.1);
   }
 }
 
-.cert-star {
-  animation: star-twinkle 3s ease-in-out infinite;
-  animation-delay: var(--sdelay, 0s);
+.cert-blob-1 {
+  top: -10%;
+  left: -8%;
+  animation: blob-drift-1 22s ease-in-out infinite;
+}
+.cert-blob-2 {
+  bottom: -12%;
+  right: -6%;
+  animation: blob-drift-2 26s ease-in-out infinite;
+}
+.cert-blob-3 {
+  top: 30%;
+  right: 15%;
+  animation: blob-drift-3 30s ease-in-out infinite;
 }
 
-@keyframes cloud-drift {
+@keyframes orbit-spin {
   from {
-    transform: translateX(-10%);
+    transform: translate(-50%, -50%) rotate(0deg);
   }
   to {
-    transform: translateX(10%);
+    transform: translate(-50%, -50%) rotate(360deg);
   }
+}
+.cert-orbit {
+  animation: orbit-spin 90s linear infinite;
 }
 
-.cert-cloud {
-  animation: cloud-drift var(--cdur, 18s) ease-in-out infinite alternate;
-  animation-delay: var(--cdelay, 0s);
+@keyframes link-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+.cert-link {
+  animation: link-flow linear infinite;
 }
 
-@keyframes fuel-in {
-  0% {
-    transform: translate(var(--fx, 0), var(--fy, 0)) scale(1);
-    opacity: 1;
-  }
-  85% {
-    opacity: 1;
-  }
-  100% {
-    transform: translate(0, 0) scale(0.25);
-    opacity: 0;
-  }
-}
-.cert-fuel-in {
-  animation: fuel-in 1.3s ease-in forwards;
-  animation-delay: var(--fdelay, 0s);
-}
-
-@keyframes rocket-shake {
+@keyframes node-pulse {
   0%,
   100% {
-    margin-left: 0;
-  }
-  25% {
-    margin-left: -2px;
-  }
-  75% {
-    margin-left: 2px;
-  }
-}
-.cert-rocket-shake {
-  animation: rocket-shake 0.12s linear infinite;
-}
-
-@keyframes flame-flicker {
-  0%,
-  100% {
-    transform: scaleY(1) scaleX(1);
-    opacity: 0.9;
+    opacity: 0.4;
+    r: 0.5;
   }
   50% {
-    transform: scaleY(1.15) scaleX(0.9);
     opacity: 1;
+    r: 0.9;
   }
 }
-.cert-flame {
-  animation: flame-flicker 0.15s ease-in-out infinite;
-  transition: opacity 0.2s;
+.cert-node {
+  animation: node-pulse 3.2s ease-in-out infinite;
 }
 
-@keyframes confetti-fall {
-  0% {
-    transform: translateY(-10px) rotate(0deg);
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  to {
     opacity: 1;
-  }
-  100% {
-    transform: translateY(120px) rotate(360deg);
-    opacity: 0;
+    transform: translate(-50%, 0);
   }
 }
-.cert-confetti {
-  animation: confetti-fall 1.6s ease-in forwards;
-  animation-delay: var(--pdelay, 0s);
-}
-
-@keyframes banner-in {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, 8px) scale(0.9);
-  }
-  15%,
-  85% {
-    opacity: 1;
-    transform: translate(-50%, 0) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -8px) scale(0.95);
-  }
-}
-.cert-banner {
-  animation: banner-in 2.6s ease-in-out forwards;
+.cert-fade-in {
+  animation: fade-in 1.2s ease-out 0.3s both;
 }

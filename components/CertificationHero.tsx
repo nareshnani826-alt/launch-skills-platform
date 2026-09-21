@@ -1,168 +1,73 @@
-"use client";
-
-import { useEffect, useState } from "react";
-
-type Phase = "fueling" | "igniting" | "launching" | "celebrating" | "reset";
-
-const DURATIONS: Record<Phase, number> = {
-  fueling: 3200,
-  igniting: 900,
-  launching: 2600,
-  celebrating: 2600,
-  reset: 300,
-};
-
-const NEXT_PHASE: Record<Phase, Phase> = {
-  fueling: "igniting",
-  igniting: "launching",
-  launching: "celebrating",
-  celebrating: "reset",
-  reset: "fueling",
-};
-
-const CAPTIONS: Record<Phase, string> = {
-  fueling: "Loading certifications as fuel…",
-  igniting: "Certification complete. Ignition sequence go.",
-  launching: "🚀 Launching skills into the market…",
-  celebrating: "🎉 Opportunity matched — job offer landed!",
-  reset: "Loading certifications as fuel…",
-};
-
-const FUEL_BADGES = [
-  { label: "AZ-204", fx: "-150px", fy: "-40px", delay: "0s" },
-  { label: "Claude Certified", fx: "140px", fy: "-60px", delay: "0.55s" },
-  { label: "Databricks", fx: "-120px", fy: "60px", delay: "1.1s" },
-  { label: "MCP Practitioner", fx: "130px", fy: "70px", delay: "1.65s" },
-  { label: "AI-102", fx: "0px", fy: "-110px", delay: "2.2s" },
+const NODES = [
+  { x: 15, y: 20 }, { x: 35, y: 12 }, { x: 55, y: 25 }, { x: 75, y: 15 }, { x: 85, y: 35 },
+  { x: 20, y: 50 }, { x: 45, y: 45 }, { x: 65, y: 55 }, { x: 30, y: 75 }, { x: 60, y: 80 },
+  { x: 80, y: 65 }, { x: 50, y: 90 },
 ];
 
-const STARS = Array.from({ length: 24 }, (_, i) => ({
-  top: `${(i * 37) % 55}%`,
-  left: `${(i * 53) % 100}%`,
-  delay: `${(i % 6) * 0.5}s`,
-}));
-
-const CONFETTI = Array.from({ length: 14 }, (_, i) => ({
-  left: `${8 + i * 6.5}%`,
-  color: ["#CDEEFE", "#80379B", "#DE1B83", "#C41874", "#6B2F85"][i % 5],
-  delay: `${(i % 5) * 0.12}s`,
-}));
+const LINKS: [number, number][] = [
+  [0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [4, 10],
+  [5, 6], [6, 7], [5, 8], [6, 9], [7, 10], [8, 9], [9, 11], [10, 11],
+];
 
 export default function CertificationHero() {
-  const [phase, setPhase] = useState<Phase>("fueling");
-
-  useEffect(() => {
-    const timer = setTimeout(() => setPhase(NEXT_PHASE[phase]), DURATIONS[phase]);
-    return () => clearTimeout(timer);
-  }, [phase]);
-
-  const departed = phase === "launching" || phase === "celebrating";
-  const rocketTransform = departed ? "translateY(-620px) scale(0.55)" : "translateY(0) scale(1)";
-  const rocketTransition = phase === "reset" ? "none" : "transform 2.6s cubic-bezier(0.55,0,0.2,1), opacity 0.3s";
-  const rocketOpacity = phase === "reset" ? 0 : 1;
-  const shaking = phase === "igniting";
-  const flameOn = phase === "igniting" || phase === "launching";
-  const fueling = phase === "fueling";
-
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden bg-gradient-to-b from-navy via-[#1a1330] to-launch-purple-deep">
-      {/* signature diagonal brand glow */}
-      <div className="launch-gradient absolute -left-1/4 -top-1/4 h-[80%] w-[80%] rounded-full opacity-20 blur-3xl" />
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-gradient-to-br from-navy via-[#150f2e] to-launch-purple-deep">
+      {/* slow-drifting gradient blobs */}
+      <div className="cert-blob cert-blob-1 absolute h-[50vw] w-[50vw] rounded-full bg-launch-purple/25 blur-3xl" />
+      <div className="cert-blob cert-blob-2 absolute h-[40vw] w-[40vw] rounded-full bg-launch-pink/20 blur-3xl" />
+      <div className="cert-blob cert-blob-3 absolute h-[35vw] w-[35vw] rounded-full bg-launch-cyan/10 blur-3xl" />
 
-      {/* sky */}
-      {STARS.map((s, i) => (
-        <span
-          key={i}
-          className="cert-star absolute h-1 w-1 rounded-full bg-white"
-          style={{ top: s.top, left: s.left, "--sdelay": s.delay } as React.CSSProperties}
-        />
-      ))}
+      {/* faint dot-grid texture */}
       <div
-        className="cert-cloud absolute left-[5%] top-[10%] h-10 w-40 rounded-full bg-white/10 blur-2xl"
-        style={{ "--cdur": "22s" } as React.CSSProperties}
-      />
-      <div
-        className="cert-cloud absolute left-[55%] top-[18%] h-14 w-56 rounded-full bg-white/10 blur-2xl"
-        style={{ "--cdur": "26s", "--cdelay": "4s" } as React.CSSProperties}
+        className="absolute inset-0 opacity-[0.07]"
+        style={{
+          backgroundImage: "radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }}
       />
 
-      {/* launch pad */}
-      <div className="absolute bottom-[6%] left-1/2 h-2 w-40 -translate-x-1/2 rounded-full bg-black/30 blur-sm sm:w-56" />
+      {/* slow-rotating orbit ring */}
       <svg
-        className="absolute bottom-[6%] left-1/2 h-10 w-40 -translate-x-1/2 sm:w-56"
-        viewBox="0 0 200 40"
-        fill="none"
-        stroke="#80379B"
-        strokeWidth="2"
+        className="cert-orbit absolute left-1/2 top-1/2 h-[60vmin] w-[60vmin] -translate-x-1/2 -translate-y-1/2 opacity-20"
+        viewBox="0 0 100 100"
       >
-        <path d="M60 40 L92 4 M140 40 L108 4" />
-        <path d="M40 40 L160 40" />
+        <circle cx="50" cy="50" r="46" fill="none" stroke="#CDEEFE" strokeWidth="0.3" strokeDasharray="1 3" />
       </svg>
 
-      {/* fuel badges flying in during fueling phase */}
-      {FUEL_BADGES.map((b) => (
-        <div
-          key={b.label}
-          className={`absolute bottom-[12%] left-1/2 whitespace-nowrap rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-medium text-white shadow-lg backdrop-blur-sm sm:text-xs ${
-            fueling ? "cert-fuel-in" : "opacity-0"
-          }`}
-          style={{ "--fx": b.fx, "--fy": b.fy, "--fdelay": b.delay } as React.CSSProperties}
-        >
-          🎓 {b.label}
-        </div>
-      ))}
-
-      {/* rocket */}
-      <div
-        className={`absolute bottom-[8%] left-1/2 -translate-x-1/2 ${shaking ? "cert-rocket-shake" : ""}`}
-        style={{ transform: `translateX(-50%) ${rocketTransform}`, transition: rocketTransition, opacity: rocketOpacity }}
-      >
-        <svg width="60" height="150" viewBox="0 0 60 150" className="overflow-visible">
-          {/* flame */}
-          <path
-            className={`cert-flame origin-top ${flameOn ? "opacity-100" : "opacity-0"}`}
-            d="M22 100 Q30 125 22 145 Q30 138 38 145 Q30 125 38 100 Z"
-            fill="url(#flameGradient)"
+      {/* network mesh */}
+      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+        {LINKS.map(([a, b], i) => (
+          <line
+            key={i}
+            className="cert-link"
+            x1={NODES[a].x}
+            y1={NODES[a].y}
+            x2={NODES[b].x}
+            y2={NODES[b].y}
+            stroke="#CDEEFE"
+            strokeWidth="0.15"
+            strokeDasharray="1.2 2.4"
+            style={{ animationDelay: `${(i % 6) * 0.5}s`, animationDuration: `${4 + (i % 5)}s` }}
           />
-          <defs>
-            <linearGradient id="flameGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#CDEEFE" />
-              <stop offset="45%" stopColor="#f59e0b" />
-              <stop offset="100%" stopColor="#DE1B83" />
-            </linearGradient>
-          </defs>
+        ))}
+        {NODES.map((n, i) => (
+          <circle
+            key={i}
+            className="cert-node"
+            cx={n.x}
+            cy={n.y}
+            r="0.6"
+            fill="#DE1B83"
+            style={{ animationDelay: `${(i % 8) * 0.35}s` }}
+          />
+        ))}
+      </svg>
 
-          {/* body */}
-          <g fill="none" stroke="#f5efe0" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M30 0 Q20 22 20 40 L40 40 Q40 22 30 0 Z" />
-            <path d="M20 40 L20 92 Q20 98 26 100 L34 100 Q40 98 40 92 L40 40 Z" />
-            <path d="M20 78 L6 100 L20 94 Z" />
-            <path d="M40 78 L54 100 L40 94 Z" />
-            <line x1="20" y1="55" x2="40" y2="55" stroke="#DE1B83" strokeWidth="3" />
-            <circle cx="30" cy="66" r="6" />
-          </g>
-        </svg>
-      </div>
-
-      {/* celebration burst */}
-      {phase === "celebrating" && (
-        <>
-          <div className="absolute left-1/2 top-[10%] -translate-x-1/2 text-4xl">🌟</div>
-          <div className="absolute left-1/2 top-[20%] -translate-x-1/2 text-3xl">💼</div>
-          {CONFETTI.map((c, i) => (
-            <span
-              key={i}
-              className="cert-confetti absolute top-[10%] h-2 w-2 rounded-sm"
-              style={{ left: c.left, backgroundColor: c.color, "--pdelay": c.delay } as React.CSSProperties}
-            />
-          ))}
-        </>
-      )}
-
-      {/* caption banner */}
-      <div key={phase} className="cert-banner absolute bottom-[6%] left-1/2 w-full max-w-sm px-4 text-center">
-        <p className="rounded-full bg-black/30 px-4 py-1.5 text-xs font-medium text-white/90 backdrop-blur-sm sm:text-sm">
-          {CAPTIONS[phase]}
+      {/* brand mark */}
+      <div className="cert-fade-in absolute bottom-[10%] left-1/2 w-full max-w-md -translate-x-1/2 px-4 text-center">
+        <p className="launch-gradient-text text-2xl font-bold tracking-tight sm:text-3xl">Launch</p>
+        <p className="mt-1 text-xs font-medium uppercase tracking-[0.2em] text-white/50 sm:text-sm">
+          Certification &amp; Partner Readiness Platform
         </p>
       </div>
     </div>
