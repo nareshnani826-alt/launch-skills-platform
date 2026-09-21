@@ -17,6 +17,8 @@ export default async function ManageUsersPage() {
     employeeId: e.id,
     employeeName: e.name,
     employeeRole: e.role,
+    employeeLocation: e.location,
+    employeeAvailabilityPct: e.availabilityPct,
     userId: e.user?.id ?? null,
     username: e.user?.username ?? null,
   }));

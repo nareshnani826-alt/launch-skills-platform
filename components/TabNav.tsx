@@ -9,6 +9,7 @@ const ADMIN_TABS = [
   { href: "/opportunity-matching", label: "3. Opportunity Matching" },
   { href: "/roi", label: "4. ROI Dashboard" },
   { href: "/pod-assistant", label: "5. Pod Formation Assistant" },
+  { href: "/admin/catalog", label: "Catalog" },
   { href: "/admin/users", label: "Manage Users" },
 ];
 

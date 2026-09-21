@@ -1,15 +1,22 @@
 import { prisma } from "@/lib/prisma";
 import MatchForm from "@/components/MatchForm";
+import AddOpportunityForm from "@/components/AddOpportunityForm";
+import OpportunitiesTable from "@/components/OpportunitiesTable";
 import { requireAdminPage } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function OpportunityMatchingPage() {
   requireAdminPage();
-  const withReqs = await prisma.opportunity.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { requirements: true },
-  });
+  const [withReqs, certs] = await Promise.all([
+    prisma.opportunity.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { requirements: true },
+    }),
+    prisma.certification.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
+  ]);
+
+  const certOptions = certs.map((c) => c.name);
 
   return (
     <div className="space-y-6">
@@ -22,36 +29,8 @@ export default async function OpportunityMatchingPage() {
       </div>
 
       <MatchForm />
-
-      <div className="card overflow-x-auto">
-        <h3 className="mb-3 font-semibold">Existing opportunities</h3>
-        <table className="data w-full">
-          <thead>
-            <tr>
-              <th>Client</th>
-              <th>Status</th>
-              <th>Revenue value</th>
-              <th>Requirements</th>
-            </tr>
-          </thead>
-          <tbody>
-            {withReqs.map((o) => (
-              <tr key={o.id}>
-                <td>{o.clientName}</td>
-                <td>
-                  <span
-                    className={`badge ${o.status === "WON" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"}`}
-                  >
-                    {o.status}
-                  </span>
-                </td>
-                <td>${o.revenueValue.toLocaleString()}</td>
-                <td>{o.requirements.map((r: any) => `${r.countNeeded}x ${r.certificationName}`).join(", ")}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <AddOpportunityForm certOptions={certOptions} />
+      <OpportunitiesTable opportunities={withReqs} />
     </div>
   );
 }
