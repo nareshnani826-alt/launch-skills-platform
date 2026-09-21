@@ -21,26 +21,7 @@ table.data td {
   @apply px-3 py-2 border-b border-neutral-100 text-sm;
 }
 
-/* --- Login page 3D certification scene --- */
-
-@keyframes coin-spin {
-  from {
-    transform: rotateY(0deg);
-  }
-  to {
-    transform: rotateY(360deg);
-  }
-}
-
-@keyframes badge-float {
-  0%,
-  100% {
-    transform: translate3d(var(--fx, 0), 0, var(--fz, 0)) rotateZ(var(--fr, 0deg));
-  }
-  50% {
-    transform: translate3d(var(--fx, 0), -14px, var(--fz, 0)) rotateZ(var(--fr, 0deg));
-  }
-}
+/* --- Login page 3D certification journey scene --- */
 
 @keyframes glow-pulse {
   0%,
@@ -54,28 +35,173 @@ table.data td {
   }
 }
 
-.cert-scene {
-  perspective: 1200px;
-}
-
-.cert-coin {
-  transform-style: preserve-3d;
-  animation: coin-spin 9s linear infinite;
-}
-
-.cert-coin-face {
-  backface-visibility: hidden;
-}
-
-.cert-coin-face--back {
-  transform: rotateY(180deg);
-}
-
-.cert-badge-card {
-  animation: badge-float 6s ease-in-out infinite;
-  animation-delay: var(--fdelay, 0s);
-}
-
 .cert-glow {
   animation: glow-pulse 5s ease-in-out infinite;
+}
+
+@keyframes star-twinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.cert-star {
+  animation: star-twinkle 3s ease-in-out infinite;
+  animation-delay: var(--sdelay, 0s);
+}
+
+@keyframes cloud-drift {
+  from {
+    transform: translateX(-10%);
+  }
+  to {
+    transform: translateX(10%);
+  }
+}
+
+.cert-cloud {
+  animation: cloud-drift var(--cdur, 18s) ease-in-out infinite alternate;
+  animation-delay: var(--cdelay, 0s);
+}
+
+@keyframes road-dash {
+  from {
+    background-position-y: 0;
+  }
+  to {
+    background-position-y: 120px;
+  }
+}
+
+.cert-road-line {
+  animation: road-dash 1.1s linear infinite;
+}
+
+@keyframes milestone-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(251, 191, 36, 0);
+  }
+}
+
+.cert-milestone-dot {
+  animation: milestone-pulse 2.4s ease-out infinite;
+  animation-delay: var(--mdelay, 0s);
+}
+
+@keyframes leg-swing-a {
+  0%,
+  100% {
+    transform: rotate(28deg);
+  }
+  50% {
+    transform: rotate(-28deg);
+  }
+}
+@keyframes leg-swing-b {
+  0%,
+  100% {
+    transform: rotate(-28deg);
+  }
+  50% {
+    transform: rotate(28deg);
+  }
+}
+@keyframes arm-swing-a {
+  0%,
+  100% {
+    transform: rotate(-24deg);
+  }
+  50% {
+    transform: rotate(24deg);
+  }
+}
+@keyframes arm-swing-b {
+  0%,
+  100% {
+    transform: rotate(24deg);
+  }
+  50% {
+    transform: rotate(-24deg);
+  }
+}
+
+.cert-runner.is-moving .cert-leg-front {
+  animation: leg-swing-a 0.38s ease-in-out infinite;
+}
+.cert-runner.is-moving .cert-leg-back {
+  animation: leg-swing-b 0.38s ease-in-out infinite;
+}
+.cert-runner.is-moving .cert-arm-front {
+  animation: arm-swing-a 0.38s ease-in-out infinite;
+}
+.cert-runner.is-moving .cert-arm-back {
+  animation: arm-swing-b 0.38s ease-in-out infinite;
+}
+
+@keyframes hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.cert-runner.is-celebrating .cert-runner-body-group {
+  animation: hop 0.5s ease-in-out infinite;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120px) rotate(360deg);
+    opacity: 0;
+  }
+}
+.cert-confetti {
+  animation: confetti-fall 1.6s ease-in forwards;
+  animation-delay: var(--pdelay, 0s);
+}
+
+@keyframes banner-in {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 8px) scale(0.9);
+  }
+  15%,
+  85% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -8px) scale(0.95);
+  }
+}
+.cert-banner {
+  animation: banner-in 2.6s ease-in-out forwards;
+}
+
+@keyframes building-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.95));
+  }
+}
+.cert-goal.is-active {
+  animation: building-glow 1s ease-in-out infinite;
 }

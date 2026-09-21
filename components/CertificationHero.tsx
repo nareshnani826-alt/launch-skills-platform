@@ -1,76 +1,158 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-const FLOATING_CARDS = [
-  { label: "AZ-204", top: "8%", left: "6%", z: 40, delay: "0s", rot: "-8deg" },
-  { label: "Claude Certified", top: "62%", left: "2%", z: 10, delay: "1.2s", rot: "6deg" },
-  { label: "Databricks", top: "12%", left: "72%", z: 20, delay: "2.1s", rot: "5deg" },
-  { label: "MCP Practitioner", top: "68%", left: "68%", z: 60, delay: "0.6s", rot: "-4deg" },
+type Phase = "running" | "arriving" | "celebrating" | "reset";
+
+const DURATIONS: Record<Phase, number> = {
+  running: 4500,
+  arriving: 1200,
+  celebrating: 2800,
+  reset: 300,
+};
+
+const MILESTONES = [
+  { label: "Planned", bottom: "20%", scale: 1 },
+  { label: "Registered", bottom: "34%", scale: 0.86 },
+  { label: "Learning", bottom: "47%", scale: 0.72 },
+  { label: "Exam", bottom: "58%", scale: 0.6 },
+  { label: "Certified", bottom: "68%", scale: 0.5 },
 ];
 
+const CAPTIONS: Record<Phase, string> = {
+  running: "Tracking every certification milestone…",
+  arriving: "Certification complete.",
+  celebrating: "🎉 Opportunity matched — job offer landed!",
+  reset: "Tracking every certification milestone…",
+};
+
+const STARS = Array.from({ length: 24 }, (_, i) => ({
+  top: `${(i * 37) % 55}%`,
+  left: `${(i * 53) % 100}%`,
+  delay: `${(i % 6) * 0.5}s`,
+}));
+
+const CONFETTI = Array.from({ length: 14 }, (_, i) => ({
+  left: `${8 + i * 6.5}%`,
+  color: ["#fbbf24", "#5b4bff", "#34d399", "#f472b6", "#60a5fa"][i % 5],
+  delay: `${(i % 5) * 0.12}s`,
+}));
+
 export default function CertificationHero() {
-  const sceneRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [phase, setPhase] = useState<Phase>("running");
 
-  function onMouseMove(e: React.MouseEvent<HTMLDivElement>) {
-    const rect = sceneRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const px = (e.clientX - rect.left) / rect.width - 0.5;
-    const py = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: py * -14, y: px * 14 });
-  }
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPhase((prev) => {
+        if (prev === "running") return "arriving";
+        if (prev === "arriving") return "celebrating";
+        if (prev === "celebrating") return "reset";
+        return "running";
+      });
+    }, DURATIONS[phase]);
+    return () => clearTimeout(timer);
+  }, [phase]);
 
-  function onMouseLeave() {
-    setTilt({ x: 0, y: 0 });
-  }
+  const runnerAdvancing = phase === "running" || phase === "arriving" || phase === "celebrating";
+  const runnerTransform = runnerAdvancing ? "translateY(-230px) scale(0.34)" : "translateY(0) scale(1)";
+  const runnerTransition = phase === "reset" ? "none" : "transform 4.5s cubic-bezier(0.45,0,0.2,1), opacity 0.3s";
+  const runnerOpacity = phase === "reset" ? 0 : 1;
+  const goalActive = phase === "arriving" || phase === "celebrating";
 
   return (
-    <div
-      ref={sceneRef}
-      onMouseMove={onMouseMove}
-      onMouseLeave={onMouseLeave}
-      className="cert-scene relative h-72 w-full overflow-hidden rounded-2xl bg-gradient-to-br from-[#241f4e] via-[#3a2f7a] to-[#5b4bff] sm:h-96"
-    >
-      <div className="cert-glow absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-300/40 blur-3xl" />
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-gradient-to-b from-[#151233] via-[#241f4e] to-[#3a2f7a]">
+      {/* sky */}
+      {STARS.map((s, i) => (
+        <span
+          key={i}
+          className="cert-star absolute h-1 w-1 rounded-full bg-white"
+          style={{ top: s.top, left: s.left, "--sdelay": s.delay } as React.CSSProperties}
+        />
+      ))}
+      <div
+        className="cert-cloud absolute left-[5%] top-[10%] h-10 w-40 rounded-full bg-white/10 blur-2xl"
+        style={{ "--cdur": "22s" } as React.CSSProperties}
+      />
+      <div
+        className="cert-cloud absolute left-[55%] top-[18%] h-14 w-56 rounded-full bg-white/10 blur-2xl"
+        style={{ "--cdur": "26s", "--cdelay": "4s" } as React.CSSProperties}
+      />
 
-      {FLOATING_CARDS.map((c) => (
+      {/* goal: office building at the horizon */}
+      <div
+        className={`cert-goal absolute left-1/2 top-[16%] -translate-x-1/2 text-5xl sm:text-6xl ${
+          goalActive ? "is-active" : ""
+        }`}
+      >
+        🏢
+      </div>
+      <p className="absolute left-1/2 top-[26%] -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold uppercase tracking-widest text-amber-200/80 sm:text-xs">
+        Opportunity Matched
+      </p>
+
+      {/* perspective road */}
+      <div
+        className="absolute bottom-0 left-1/2 h-[70%] w-[70%] -translate-x-1/2 sm:w-[46%]"
+        style={{ clipPath: "polygon(38% 0%, 62% 0%, 100% 100%, 0% 100%)" }}
+      >
+        <div className="h-full w-full bg-gradient-to-t from-[#1c1840] to-[#2d2766]" />
         <div
-          key={c.label}
-          className="cert-badge-card absolute rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-xs font-medium text-white shadow-lg backdrop-blur-sm"
-          style={
-            {
-              top: c.top,
-              left: c.left,
-              "--fdelay": c.delay,
-              "--fr": c.rot,
-              transform: `translateZ(${c.z}px)`,
-            } as React.CSSProperties
-          }
+          className="cert-road-line absolute left-1/2 top-0 h-full w-1 -translate-x-1/2"
+          style={{
+            backgroundImage: "repeating-linear-gradient(to bottom, rgba(251,191,36,0.85) 0 24px, transparent 24px 48px)",
+          }}
+        />
+      </div>
+
+      {/* milestones along the road */}
+      {MILESTONES.map((m) => (
+        <div
+          key={m.label}
+          className="absolute left-1/2 flex -translate-x-1/2 flex-col items-center"
+          style={{ bottom: m.bottom, transform: `translateX(-50%) scale(${m.scale})` }}
         >
-          🎓 {c.label}
+          <div className="cert-milestone-dot h-3 w-3 rounded-full bg-amber-300" style={{ "--mdelay": "0.3s" } as React.CSSProperties} />
+          <span className="mt-1 whitespace-nowrap text-[10px] font-medium text-white/70">{m.label}</span>
         </div>
       ))}
 
+      {/* runner */}
       <div
-        className="absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 ease-out sm:h-36 sm:w-36"
-        style={{ transform: `translate(-50%, -50%) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)` }}
+        className={`cert-runner absolute bottom-[6%] left-1/2 -translate-x-1/2 ${runnerAdvancing ? "is-moving" : ""} ${
+          phase === "celebrating" ? "is-celebrating" : ""
+        }`}
+        style={{ transform: `translateX(-50%) ${runnerTransform}`, transition: runnerTransition, opacity: runnerOpacity }}
       >
-        <div className="cert-coin relative h-full w-full">
-          <div className="cert-coin-face absolute inset-0 flex flex-col items-center justify-center rounded-full border-4 border-amber-200 bg-gradient-to-br from-amber-300 via-amber-400 to-amber-600 text-amber-950 shadow-2xl">
-            <span className="text-3xl sm:text-4xl">✓</span>
-            <span className="mt-1 text-[9px] font-bold tracking-widest sm:text-[10px]">CERTIFIED</span>
-          </div>
-          <div className="cert-coin-face cert-coin-face--back absolute inset-0 flex flex-col items-center justify-center rounded-full border-4 border-amber-200 bg-gradient-to-br from-amber-500 via-amber-400 to-amber-300 text-amber-950 shadow-2xl">
-            <span className="text-3xl sm:text-4xl">★</span>
-            <span className="mt-1 text-[9px] font-bold tracking-widest sm:text-[10px]">SKILLS</span>
-          </div>
+        <div className="cert-runner-body-group relative h-24 w-16">
+          <div className="absolute left-1/2 top-0 h-6 w-6 -translate-x-1/2 rounded-full bg-amber-200" />
+          <div className="absolute left-1/2 top-5 h-10 w-7 -translate-x-1/2 rounded-xl bg-accent" />
+          <div className="cert-arm-back absolute left-[38%] top-6 h-8 w-2 origin-top rounded-full bg-amber-200/90" />
+          <div className="cert-arm-front absolute left-[58%] top-6 h-8 w-2 origin-top rounded-full bg-amber-300" />
+          <div className="cert-leg-back absolute left-[40%] top-14 h-9 w-2.5 origin-top rounded-full bg-[#241f4e]" />
+          <div className="cert-leg-front absolute left-[54%] top-14 h-9 w-2.5 origin-top rounded-full bg-[#2d2766]" />
         </div>
       </div>
 
-      <p className="absolute bottom-3 left-1/2 w-full -translate-x-1/2 text-center text-xs text-white/70">
-        Certifications tracked, matched, and put to work.
-      </p>
+      {/* celebration burst */}
+      {phase === "celebrating" && (
+        <>
+          <div className="absolute left-1/2 top-[14%] -translate-x-1/2 text-4xl">💼</div>
+          {CONFETTI.map((c, i) => (
+            <span
+              key={i}
+              className="cert-confetti absolute top-[14%] h-2 w-2 rounded-sm"
+              style={{ left: c.left, backgroundColor: c.color, "--pdelay": c.delay } as React.CSSProperties}
+            />
+          ))}
+        </>
+      )}
+
+      {/* caption banner */}
+      <div key={phase} className="cert-banner absolute bottom-[6%] left-1/2 w-full max-w-sm px-4 text-center">
+        <p className="rounded-full bg-black/30 px-4 py-1.5 text-xs font-medium text-white/90 backdrop-blur-sm sm:text-sm">
+          {CAPTIONS[phase]}
+        </p>
+      </div>
     </div>
   );
 }
