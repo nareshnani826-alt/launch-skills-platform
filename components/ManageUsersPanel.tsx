@@ -29,13 +29,10 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
+  // Password fields start empty (not a silent random guess) so what's shown is always
+  // exactly what will be submitted — admin types their own or clicks Generate.
   function draftFor(employeeId: string, employeeName: string) {
-    return (
-      drafts[employeeId] ?? {
-        username: employeeName.toLowerCase().replace(/[^a-z0-9]+/g, "."),
-        password: randomPassword(),
-      }
-    );
+    return drafts[employeeId] ?? { username: employeeName.toLowerCase().replace(/[^a-z0-9]+/g, "."), password: "" };
   }
 
   function updateDraft(employeeId: string, patch: Partial<{ username: string; password: string }>) {
@@ -43,7 +40,7 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
   }
 
   function resetDraftFor(employeeId: string) {
-    return resetDrafts[employeeId] ?? randomPassword();
+    return resetDrafts[employeeId] ?? "";
   }
 
   function startEdit(row: Row) {
@@ -98,7 +95,7 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
       setError(data.error ?? "Failed to create login");
       return;
     }
-    setNotice(`Created login "${draft.username}" for ${row.employeeName}.`);
+    setNotice(`Created login "${draft.username}" for ${row.employeeName} — password: ${draft.password}`);
     router.refresh();
   }
 
@@ -123,8 +120,7 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
       setError(data.error ?? "Failed to reset password");
       return;
     }
-    setNotice(`Password updated for ${row.employeeName} (${row.username}).`);
-    setResetDrafts((prev) => ({ ...prev, [row.employeeId]: randomPassword() }));
+    setNotice(`Password updated for ${row.employeeName} (${row.username}) — password: ${newPassword}`);
   }
 
   async function removeLogin(row: Row) {
@@ -256,8 +252,15 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
                             placeholder="new password"
                           />
                           <button
+                            onClick={() => setResetDrafts((prev) => ({ ...prev, [row.employeeId]: randomPassword() }))}
+                            className="rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50"
+                            title="Generate a random password"
+                          >
+                            Generate
+                          </button>
+                          <button
                             onClick={() => resetPassword(row)}
-                            disabled={busy}
+                            disabled={busy || resetDraftFor(row.employeeId).length < 8}
                             className="rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50 disabled:opacity-50"
                           >
                             Set password
@@ -287,8 +290,15 @@ export default function ManageUsersPanel({ rows }: { rows: Row[] }) {
                             placeholder="password"
                           />
                           <button
+                            onClick={() => updateDraft(row.employeeId, { password: randomPassword() })}
+                            className="rounded border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-50"
+                            title="Generate a random password"
+                          >
+                            Generate
+                          </button>
+                          <button
                             onClick={() => createLogin(row)}
-                            disabled={busy}
+                            disabled={busy || draft.password.length < 8}
                             className="rounded bg-accent px-2 py-1 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
                           >
                             {busy ? "Creating..." : "Create login"}

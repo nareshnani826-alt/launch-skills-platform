@@ -15,12 +15,13 @@ type Row = {
 };
 
 const STAGES = ["PLANNED", "REGISTERED", "IN_LEARNING", "EXAM_SCHEDULED", "CERTIFIED", "RENEWAL_DUE"] as const;
-const PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 25, 50, "All"] as const;
 
 export default function PipelineTable({ rows }: { rows: Row[] }) {
   const [stageFilter, setStageFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZE_OPTIONS)[number]>(10);
 
   const counts: Record<string, number> = {};
   for (const r of rows) counts[r.stage] = (counts[r.stage] ?? 0) + 1;
@@ -34,9 +35,10 @@ export default function PipelineTable({ rows }: { rows: Row[] }) {
     });
   }, [rows, stageFilter, search]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = pageSize === "All" ? 1 : Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageRows =
+    pageSize === "All" ? filtered : filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   function toggleStage(s: string) {
     setStageFilter((prev) => (prev === s ? null : s));
@@ -128,29 +130,59 @@ export default function PipelineTable({ rows }: { rows: Row[] }) {
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-neutral-500">
-            Page {currentPage} of {totalPages}
-          </span>
-          <div className="flex gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+        <div className="flex items-center gap-2 text-neutral-500">
+          <span>Show</span>
+          {PAGE_SIZE_OPTIONS.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => {
+                setPageSize(opt);
+                setPage(1);
+              }}
+              className={`rounded border px-2 py-1 text-xs ${
+                pageSize === opt
+                  ? "border-accent bg-accent/10 text-accent"
+                  : "border-neutral-300 hover:bg-neutral-50"
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center gap-1">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="rounded border border-neutral-300 px-3 py-1 hover:bg-neutral-50 disabled:opacity-50"
+              className="rounded border border-neutral-300 px-2 py-1 hover:bg-neutral-50 disabled:opacity-50"
             >
               Previous
             </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`h-7 w-7 rounded border text-xs ${
+                  p === currentPage
+                    ? "border-accent bg-accent text-white"
+                    : "border-neutral-300 hover:bg-neutral-50"
+                }`}
+              >
+                {p}
+              </button>
+            ))}
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="rounded border border-neutral-300 px-3 py-1 hover:bg-neutral-50 disabled:opacity-50"
+              className="rounded border border-neutral-300 px-2 py-1 hover:bg-neutral-50 disabled:opacity-50"
             >
               Next
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { Session } from "@/lib/auth";
 import LogoutButton from "@/components/LogoutButton";
+import SettingsMenu from "@/components/SettingsMenu";
 
 export default function AuthStatus({ session }: { session: Session }) {
   return (
@@ -7,6 +8,7 @@ export default function AuthStatus({ session }: { session: Session }) {
       <span className={`badge ${session.role === "ADMIN" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"}`}>
         {session.username} · {session.role === "ADMIN" ? "Admin" : "Resource"}
       </span>
+      {session.role === "ADMIN" && <SettingsMenu />}
       <LogoutButton />
     </div>
   );
