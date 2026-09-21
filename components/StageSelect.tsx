@@ -14,15 +14,7 @@ const STAGE_COLOR: Record<string, string> = {
   RENEWAL_DUE: "bg-red-100 text-red-700",
 };
 
-export default function StageSelect({
-  id,
-  stage,
-  readOnly = false,
-}: {
-  id: string;
-  stage: string;
-  readOnly?: boolean;
-}) {
+export default function StageSelect({ id, stage }: { id: string; stage: string }) {
   const [saved, setSaved] = useState(stage);
   const [value, setValue] = useState(stage);
   const [pending, startTransition] = useTransition();
@@ -30,10 +22,6 @@ export default function StageSelect({
   const router = useRouter();
 
   const dirty = value !== saved;
-
-  if (readOnly) {
-    return <span className={`badge ${STAGE_COLOR[stage]}`}>{stage.replace("_", " ")}</span>;
-  }
 
   async function onSave() {
     setSaving(true);

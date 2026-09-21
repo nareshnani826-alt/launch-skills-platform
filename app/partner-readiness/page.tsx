@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/prisma";
+import { requireAdminPage } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 const IN_PROGRESS_STAGES = ["PLANNED", "REGISTERED", "IN_LEARNING", "EXAM_SCHEDULED"] as const;
 
 export default async function PartnerReadinessPage() {
+  requireAdminPage();
   const [programs, stageCounts] = await Promise.all([
     prisma.partnerProgram.findMany({
       include: { requirements: { include: { certification: true } } },

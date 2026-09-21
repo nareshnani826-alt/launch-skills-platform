@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession, isAdmin } from "@/lib/auth";
 
 // POST /api/opportunity-match
 // body: { requirements: [{ certificationName: string, countNeeded: number }] }
 export async function POST(req: NextRequest) {
+  if (!isAdmin(getSession())) {
+    return NextResponse.json({ error: "Admin login required" }, { status: 401 });
+  }
+
   const body = await req.json();
   const requirements: { certificationName: string; countNeeded: number }[] = body.requirements ?? [];
 

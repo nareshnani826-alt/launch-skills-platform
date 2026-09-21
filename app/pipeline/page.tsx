@@ -1,13 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import StageSelect from "@/components/StageSelect";
-import { isAdminSession } from "@/lib/auth";
+import { requireAdminPage } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 const STAGES = ["PLANNED", "REGISTERED", "IN_LEARNING", "EXAM_SCHEDULED", "CERTIFIED", "RENEWAL_DUE"] as const;
 
 export default async function PipelinePage() {
-  const isAdmin = isAdminSession();
+  requireAdminPage();
   const entries = await prisma.employeeCertification.findMany({
     include: { employee: true, certification: true },
     orderBy: [{ certification: { name: "asc" } }, { employee: { name: "asc" } }],
@@ -31,10 +31,8 @@ export default async function PipelinePage() {
       <div>
         <h2 className="text-xl font-semibold">Certification Pipeline Tracking</h2>
         <p className="text-sm text-neutral-500">
-          Leading indicators, not just completions.{" "}
-          {isAdmin
-            ? "Change a stage below — it writes through the API and persists (working feature, not a mock)."
-            : "Sign in as admin to change stages."}
+          Leading indicators, not just completions. Change a stage below — it writes through the API and
+          persists (working feature, not a mock).
         </p>
       </div>
 
@@ -67,7 +65,7 @@ export default async function PipelinePage() {
                 <td>{r.certName}</td>
                 <td>{r.certPartner}</td>
                 <td>
-                  <StageSelect id={r.id} stage={r.stage} readOnly={!isAdmin} />
+                  <StageSelect id={r.id} stage={r.stage} />
                 </td>
                 <td>{r.targetDate ? new Date(r.targetDate).toLocaleDateString() : "—"}</td>
               </tr>

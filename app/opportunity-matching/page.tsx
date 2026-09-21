@@ -1,9 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import MatchForm from "@/components/MatchForm";
+import { requireAdminPage } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function OpportunityMatchingPage() {
+  requireAdminPage();
   const withReqs = await prisma.opportunity.findMany({
     orderBy: { createdAt: "desc" },
     include: { requirements: true },

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import TabNav from "@/components/TabNav";
 import AuthStatus from "@/components/AuthStatus";
+import { getSession } from "@/lib/auth";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -9,6 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const session = getSession();
+
   return (
     <html lang="en">
       <body>
@@ -18,10 +21,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <h1 className="text-lg font-semibold">Launch Skills &amp; Partnership Intelligence</h1>
               <p className="text-sm text-neutral-500">Certification &amp; Partner Readiness Platform</p>
             </div>
-            <AuthStatus />
+            {session && <AuthStatus session={session} />}
           </div>
         </header>
-        <TabNav />
+        {session && <TabNav role={session.role} />}
         <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
       </body>
     </html>

@@ -1,9 +1,24 @@
 import { PrismaClient, PipelineStage } from "@prisma/client";
+import { hashPassword } from "../lib/password";
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("Seeding sample data...");
+
+  // --- Initial admin login (from env, so it's set per-environment) ---
+  const adminUsername = process.env.ADMIN_USERNAME;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (adminUsername && adminPassword) {
+    await prisma.user.upsert({
+      where: { username: adminUsername },
+      update: {},
+      create: { username: adminUsername, passwordHash: hashPassword(adminPassword), role: "ADMIN" },
+    });
+    console.log(`Admin login ready: ${adminUsername}`);
+  } else {
+    console.warn("ADMIN_USERNAME/ADMIN_PASSWORD not set — skipping admin account creation.");
+  }
 
   // --- Certifications (catalog from the client brief) ---
   const certData = [

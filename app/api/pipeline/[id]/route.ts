@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { isAdminSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { PipelineStage } from "@prisma/client";
 
 const STAGES = ["PLANNED", "REGISTERED", "IN_LEARNING", "EXAM_SCHEDULED", "CERTIFIED", "RENEWAL_DUE"];
 
 // PATCH /api/pipeline/:id  { stage: "CERTIFIED" }
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!isAdminSession()) {
-    return NextResponse.json({ error: "Admin login required" }, { status: 401 });
+  const session = getSession();
+  if (!session) {
+    return NextResponse.json({ error: "Login required" }, { status: 401 });
   }
 
   const body = await req.json();
@@ -25,6 +26,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   if (!existing) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  if (session.role !== "ADMIN" && existing.employeeId !== session.employeeId) {
+    return NextResponse.json({ error: "You can only update your own certifications" }, { status: 403 });
   }
 
   const isNowCertified = stage === "CERTIFIED" && existing.stage !== "CERTIFIED";

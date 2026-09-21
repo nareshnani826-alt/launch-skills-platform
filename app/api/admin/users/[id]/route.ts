@@ -1,0 +1,42 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getSession, isAdmin } from "@/lib/auth";
+import { hashPassword } from "@/lib/password";
+
+// PATCH /api/admin/users/:id  { password }  -- reset a resource account's password
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const session = getSession();
+  if (!isAdmin(session)) {
+    return NextResponse.json({ error: "Admin login required" }, { status: 401 });
+  }
+
+  const body = await req.json();
+  const password = String(body.password ?? "");
+  if (password.length < 8) {
+    return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+  }
+
+  const target = await prisma.user.findUnique({ where: { id: params.id } });
+  if (!target || target.role !== "RESOURCE") {
+    return NextResponse.json({ error: "Resource account not found" }, { status: 404 });
+  }
+
+  await prisma.user.update({ where: { id: params.id }, data: { passwordHash: hashPassword(password) } });
+  return NextResponse.json({ ok: true });
+}
+
+// DELETE /api/admin/users/:id  -- remove a resource account's login
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const session = getSession();
+  if (!isAdmin(session)) {
+    return NextResponse.json({ error: "Admin login required" }, { status: 401 });
+  }
+
+  const target = await prisma.user.findUnique({ where: { id: params.id } });
+  if (!target || target.role !== "RESOURCE") {
+    return NextResponse.json({ error: "Resource account not found" }, { status: 404 });
+  }
+
+  await prisma.user.delete({ where: { id: params.id } });
+  return NextResponse.json({ ok: true });
+}

@@ -21,6 +21,21 @@ enum PipelineStage {
   RENEWAL_DUE
 }
 
+enum UserRole {
+  ADMIN
+  RESOURCE
+}
+
+model User {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  passwordHash String
+  role         UserRole
+  employee     Employee? @relation(fields: [employeeId], references: [id])
+  employeeId   String?   @unique
+  createdAt    DateTime  @default(now())
+}
+
 model Employee {
   id                 String               @id @default(cuid())
   name               String
@@ -30,6 +45,7 @@ model Employee {
   availabilityPct    Int                  @default(100) // % capacity free for new work
   certifications     EmployeeCertification[]
   podMemberships     PodRecommendationMember[]
+  user               User?
   createdAt          DateTime             @default(now())
 }
 

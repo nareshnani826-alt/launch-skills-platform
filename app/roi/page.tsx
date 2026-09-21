@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { requireAdminPage } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function RoiPage() {
+  requireAdminPage();
   const certs = await prisma.certification.findMany({
     include: { spend: true, revenueAttributions: true },
   });

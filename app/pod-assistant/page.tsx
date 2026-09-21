@@ -1,6 +1,10 @@
 import PodForm from "@/components/PodForm";
+import { requireAdminPage } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
 
 export default function PodAssistantPage() {
+  requireAdminPage();
   return (
     <div className="space-y-6">
       <div>
