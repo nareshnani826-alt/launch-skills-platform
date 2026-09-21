@@ -123,14 +123,52 @@ export default function CertificationHero() {
         }`}
         style={{ transform: `translateX(-50%) ${runnerTransform}`, transition: runnerTransition, opacity: runnerOpacity }}
       >
-        <div className="cert-runner-body-group relative h-24 w-16">
-          <div className="absolute left-1/2 top-0 h-6 w-6 -translate-x-1/2 rounded-full bg-amber-200" />
-          <div className="absolute left-1/2 top-5 h-10 w-7 -translate-x-1/2 rounded-xl bg-accent" />
-          <div className="cert-arm-back absolute left-[38%] top-6 h-8 w-2 origin-top rounded-full bg-amber-200/90" />
-          <div className="cert-arm-front absolute left-[58%] top-6 h-8 w-2 origin-top rounded-full bg-amber-300" />
-          <div className="cert-leg-back absolute left-[40%] top-14 h-9 w-2.5 origin-top rounded-full bg-[#241f4e]" />
-          <div className="cert-leg-front absolute left-[54%] top-14 h-9 w-2.5 origin-top rounded-full bg-[#2d2766]" />
-        </div>
+        <svg
+          className="cert-runner-body-group h-24 w-16 overflow-visible"
+          viewBox="0 0 64 100"
+          fill="none"
+          stroke="#f5efe0"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          {/* head + hairline */}
+          <circle cx="32" cy="12" r="8" />
+          <path d="M25 8 Q32 2 39 8" strokeWidth="1.6" />
+          {/* neck */}
+          <line x1="32" y1="20" x2="32" y2="24" />
+          {/* suit jacket */}
+          <path d="M23 24 L41 24 L37 53 L27 53 Z" />
+          {/* lapels */}
+          <path d="M27 24 L32 35 L37 24" strokeWidth="1.6" />
+          {/* tie */}
+          <path
+            d="M30.5 25.5 L33.5 25.5 L35 45 L32 50 L29 45 Z"
+            fill="#f5a524"
+            stroke="#b3760f"
+            strokeWidth="1"
+          />
+
+          {/* back arm */}
+          <g className="cert-arm-back" style={{ transformBox: "fill-box", transformOrigin: "top center" }}>
+            <path d="M38 26 L45 37 L41 47" />
+          </g>
+          {/* front arm */}
+          <g className="cert-arm-front" style={{ transformBox: "fill-box", transformOrigin: "top center" }}>
+            <path d="M26 26 L19 37 L23 47" />
+          </g>
+
+          {/* back leg */}
+          <g className="cert-leg-back" style={{ transformBox: "fill-box", transformOrigin: "top center" }}>
+            <path d="M35 53 L41 69 L37 83" />
+            <path d="M37 83 L44 85" strokeWidth="2" />
+          </g>
+          {/* front leg */}
+          <g className="cert-leg-front" style={{ transformBox: "fill-box", transformOrigin: "top center" }}>
+            <path d="M29 53 L23 69 L27 83" />
+            <path d="M27 83 L20 85" strokeWidth="2" />
+          </g>
+        </svg>
       </div>
 
       {/* celebration burst */}
