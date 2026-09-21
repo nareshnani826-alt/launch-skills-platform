@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import CertificationHero from "@/components/CertificationHero";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -32,8 +33,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-sm">
-      <div className="card space-y-4">
+    <div className="mx-auto grid max-w-4xl grid-cols-1 items-center gap-8 md:grid-cols-2">
+      <CertificationHero />
+      <div className="card mx-auto w-full max-w-sm space-y-4">
         <div>
           <h2 className="text-lg font-semibold">Login</h2>
           <p className="text-sm text-neutral-500">Sign in to access the platform.</p>

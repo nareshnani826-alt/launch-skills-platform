@@ -20,3 +20,62 @@ table.data th {
 table.data td {
   @apply px-3 py-2 border-b border-neutral-100 text-sm;
 }
+
+/* --- Login page 3D certification scene --- */
+
+@keyframes coin-spin {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes badge-float {
+  0%,
+  100% {
+    transform: translate3d(var(--fx, 0), 0, var(--fz, 0)) rotateZ(var(--fr, 0deg));
+  }
+  50% {
+    transform: translate3d(var(--fx, 0), -14px, var(--fz, 0)) rotateZ(var(--fr, 0deg));
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+
+.cert-scene {
+  perspective: 1200px;
+}
+
+.cert-coin {
+  transform-style: preserve-3d;
+  animation: coin-spin 9s linear infinite;
+}
+
+.cert-coin-face {
+  backface-visibility: hidden;
+}
+
+.cert-coin-face--back {
+  transform: rotateY(180deg);
+}
+
+.cert-badge-card {
+  animation: badge-float 6s ease-in-out infinite;
+  animation-delay: var(--fdelay, 0s);
+}
+
+.cert-glow {
+  animation: glow-pulse 5s ease-in-out infinite;
+}
