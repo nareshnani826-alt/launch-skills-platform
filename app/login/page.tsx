@@ -33,8 +33,8 @@ export default function LoginPage() {
     <div className="mx-auto max-w-sm">
       <div className="card space-y-4">
         <div>
-          <h2 className="text-lg font-semibold">Admin login</h2>
-          <p className="text-sm text-neutral-500">Sign in to add or modify data.</p>
+          <h2 className="text-lg font-semibold">Login</h2>
+          <p className="text-sm text-neutral-500">Sign in to access the platform.</p>
         </div>
         <form onSubmit={onSubmit} className="space-y-3">
           <div>
