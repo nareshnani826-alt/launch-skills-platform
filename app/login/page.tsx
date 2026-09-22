@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import CertificationHero from "@/components/CertificationHero";
+import { Manrope, Space_Grotesk } from "next/font/google";
+import LoginScene from "@/components/LoginScene";
+
+const manrope = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700"], display: "swap" });
+const grotesk = Space_Grotesk({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-grotesk", display: "swap" });
+
+const INPUT =
+  "box-border w-full rounded-xl border border-white/[.14] bg-[#050710]/45 px-3.5 py-[13px] text-sm text-[#F3F4F8] placeholder-white/30 outline-none transition focus:border-[#D6247E] focus:ring-2 focus:ring-[#D6247E]/40";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -33,52 +40,86 @@ export default function LoginPage() {
   }
 
   return (
-    <>
-      <CertificationHero />
-      <div className="flex min-h-[75vh] items-center justify-center">
-        <div className="w-full max-w-sm space-y-4 rounded-2xl border border-launch-purple/40 bg-white/10 p-6 shadow-2xl backdrop-blur-xl">
-          <div>
-            <h2 className="launch-gradient-text text-lg font-bold">Login</h2>
-            <p className="text-sm text-white/70">Sign in to access the platform.</p>
+    // Covers the app shell (header/tabs) so the sign-in scene is full-bleed.
+    <div className={`${manrope.className} ${grotesk.variable} fixed inset-0 z-50 overflow-auto bg-[#070912]`}>
+      <LoginScene />
+      <div className="relative z-10 flex min-h-full items-center justify-center px-4 py-10 xl:justify-end xl:pr-[72px]">
+        <div
+          className="lp-card box-border w-full max-w-[420px] rounded-[28px] border border-white/[.16] px-8 pb-9 pt-11 sm:px-10"
+          style={{
+            background: "linear-gradient(165deg, rgba(255,255,255,.09), rgba(255,255,255,.03))",
+            backdropFilter: "blur(22px)",
+            boxShadow: "0 50px 90px -30px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.03), inset 0 1px 0 rgba(255,255,255,.18)",
+          }}
+        >
+          {/* the scene carries the brand on wide screens; show it here otherwise */}
+          <div className="mb-6 flex items-center gap-3 xl:hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/launch-logo.png" alt="" width={34} height={34} className="h-[34px] w-[34px] object-contain" />
+            <span className="font-[family-name:var(--font-grotesk)] text-2xl font-bold text-[#F3F4F8]">Launch</span>
           </div>
 
+          <div className="text-[11px] uppercase tracking-[2px] text-[#8A90A8]">Skills &amp; Partnership Intelligence</div>
+          <h1 className="mb-1.5 mt-3.5 font-[family-name:var(--font-grotesk)] text-[26px] font-semibold text-[#F6F7FC]">Welcome back</h1>
+          <p className="mb-7 text-sm leading-normal text-[#9BA1C0]">
+            Sign in to track certification pipelines, partner readiness, and the business capability they create.
+          </p>
+
           {locked ? (
-            <div className="rounded border border-red-300/50 bg-red-500/20 p-3 text-sm text-red-100">
+            <div role="alert" className="rounded-xl border border-red-300/50 bg-red-500/20 p-3 text-sm text-red-100">
               <p className="font-semibold">Account locked</p>
               <p className="mt-1">{error}</p>
             </div>
           ) : (
-            <form onSubmit={onSubmit} className="space-y-3">
-              <div>
-                <label className="text-xs font-semibold text-white/70">Username</label>
+            <form onSubmit={onSubmit} className="flex flex-col gap-[18px]">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="username" className="text-xs font-semibold tracking-[.4px] text-[#C7CBE6]">
+                  Username
+                </label>
                 <input
-                  className="mt-1 w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-sm text-white placeholder-white/40 focus:border-launch-cyan focus:outline-none"
+                  id="username"
+                  name="username"
+                  type="text"
+                  autoComplete="username"
+                  className={INPUT}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   autoFocus
                 />
               </div>
-              <div>
-                <label className="text-xs font-semibold text-white/70">Password</label>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="password" className="text-xs font-semibold tracking-[.4px] text-[#C7CBE6]">
+                  Password
+                </label>
                 <input
+                  id="password"
+                  name="password"
                   type="password"
-                  className="mt-1 w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-sm text-white placeholder-white/40 focus:border-launch-cyan focus:outline-none"
+                  autoComplete="current-password"
+                  placeholder="••••••••••"
+                  className={INPUT}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-sm text-red-200">{error}</p>}
+              {error && (
+                <p role="alert" className="text-sm text-red-200">
+                  {error}
+                </p>
+              )}
               <button
                 type="submit"
                 disabled={loading}
-                className="launch-gradient w-full rounded px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+                className="mt-1.5 w-full rounded-xl px-3.5 py-3.5 text-sm font-bold tracking-[.3px] text-white shadow-[0_18px_30px_-12px_rgba(214,36,126,.56)] transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-50"
+                style={{ background: "linear-gradient(120deg, #16305C, #D6247E 55%, #F2541B)" }}
               >
                 {loading ? "Signing in..." : "Sign in"}
               </button>
+              <p className="text-center text-[13px] text-[#8A90A8]">Forgot your password? Ask your admin to reset it.</p>
             </form>
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

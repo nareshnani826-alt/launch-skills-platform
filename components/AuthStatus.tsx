@@ -5,10 +5,10 @@ import SettingsMenu from "@/components/SettingsMenu";
 export default function AuthStatus({ session }: { session: Session }) {
   return (
     <div className="flex items-center gap-3 text-sm">
-      <span className={`badge ${session.role === "ADMIN" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"}`}>
-        {session.username} · {session.role === "ADMIN" ? "Admin" : "Resource"}
-      </span>
       {session.role === "ADMIN" && <SettingsMenu />}
+      <span className="badge border border-white/15 bg-navy text-white capitalize">
+        {session.username}
+      </span>
       <LogoutButton />
     </div>
   );

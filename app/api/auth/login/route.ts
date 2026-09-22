@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
 
   const user = await prisma.user.findUnique({ where: { username } });
   if (!user) {
+    console.warn(`[login] rejected: no user with username "${username}"`);
     return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
   }
 
@@ -23,7 +24,10 @@ export async function POST(req: NextRequest) {
     email: authEmailForUsername(username),
     password,
   });
-  if (error) return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
+  if (error) {
+    console.warn(`[login] rejected by Supabase for ${authEmailForUsername(username)}: ${error.message}`);
+    return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
+  }
 
   const res = NextResponse.json({ ok: true, role: user.role });
   res.cookies.set(

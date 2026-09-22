@@ -21,9 +21,25 @@ export default function PodForm() {
   const [techStack, setTechStack] = useState<string[]>(["Claude Certified Developer", "Databricks Data Engineer Associate"]);
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<{ name: string; matched: string[] }[] | null>(null);
+  const [suggesting, setSuggesting] = useState(false);
 
   function toggleCert(c: string) {
     setTechStack((prev) => (prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]));
+  }
+
+  async function suggest() {
+    setSuggesting(true);
+    const res = await fetch("/api/pod-assistant/interpret", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clientNeed }),
+    });
+    const data = await res.json().catch(() => ({}));
+    const found: { name: string; matched: string[] }[] = data.suggestions ?? [];
+    setSuggestions(found);
+    if (found.length) setTechStack(found.map((s) => s.name));
+    setSuggesting(false);
   }
 
   async function submit() {
@@ -45,8 +61,26 @@ export default function PodForm() {
           <input
             className="mt-1 w-full rounded border border-neutral-300 px-2 py-1.5 text-sm"
             value={clientNeed}
-            onChange={(e) => setClientNeed(e.target.value)}
+            onChange={(e) => {
+              setClientNeed(e.target.value);
+              setSuggestions(null);
+            }}
           />
+          <button
+            type="button"
+            onClick={suggest}
+            disabled={suggesting || !clientNeed.trim()}
+            className="mt-2 rounded border border-accent px-3 py-1 text-xs font-medium text-accent hover:bg-accent/10 disabled:opacity-50"
+          >
+            {suggesting ? "Reading..." : "Suggest certifications from this need"}
+          </button>
+          {suggestions && (
+            <p className="mt-2 text-xs text-neutral-500">
+              {suggestions.length
+                ? `Selected from keywords: ${suggestions.map((s) => `${s.name} (${s.matched.join(", ")})`).join("; ")}. Adjust below if needed.`
+                : "No certifications matched those words — pick the technology stack manually."}
+            </p>
+          )}
         </div>
         <div>
           <label className="text-xs font-semibold text-neutral-500">Technology stack (select certifications)</label>
@@ -98,6 +132,7 @@ export default function PodForm() {
               <tr>
                 <th>Requested certification</th>
                 <th>Top candidates</th>
+                <th>Closest to certified</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -111,6 +146,18 @@ export default function PodForm() {
                       : "—"}
                   </td>
                   <td>
+                    {s.closest.length
+                      ? s.closest
+                          .map(
+                            (c: any) =>
+                              `${c.name} (${c.stage.replace(/_/g, " ").toLowerCase()}${
+                                c.targetDate ? `, target ${new Date(c.targetDate).toLocaleDateString()}` : ""
+                              })`
+                          )
+                          .join(", ")
+                      : "—"}
+                  </td>
+                  <td>
                     <span className={`badge ${s.gap ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}>
                       {s.gap ? "Certification gap" : "Covered"}
                     </span>
@@ -119,6 +166,12 @@ export default function PodForm() {
               ))}
             </tbody>
           </table>
+          {result.gapClosingCost > 0 && (
+            <p className="text-sm">
+              Certifying one person in each uncovered skill costs{" "}
+              <span className="font-semibold">${result.gapClosingCost.toLocaleString()}</span> (catalog exam + training cost).
+            </p>
+          )}
           <p className="text-xs text-neutral-500">
             Cost and margin are placeholder blended figures — a real version pulls the client rate card and each
             employee&apos;s loaded cost. Flagged in the Gap Analysis.
