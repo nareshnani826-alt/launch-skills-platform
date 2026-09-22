@@ -13,6 +13,9 @@ const config: Config = {
         "launch-pink": "#DE1B83",
         "launch-cyan": "#CDEEFE",
       },
+      transitionTimingFunction: {
+        launch: "cubic-bezier(.2,.7,.2,1)",
+      },
     },
   },
   plugins: [],
